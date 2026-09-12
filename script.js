@@ -25,7 +25,7 @@ let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '', 
 let tempProfilePicBase64 = ''; 
 
 let currentKnownLevel = 0; 
-let globalMinuteTicker = 0; // Para el sistema de alarmas de tareas
+let globalMinuteTicker = 0; 
 
 let activeTimer = JSON.parse(localStorage.getItem('fred_cloud_active')) || null;
 let timerInterval = null;
@@ -39,23 +39,23 @@ let currentTimeFilter = 'weekly';
 // CATALOGO DE LA TIENDA Y EFECTOS
 // =========================================
 const shopItems = [
-    { id: 'feature_radial_chart', name: '数据分析：环形图', desc: 'Unlock Radial Chart', price: 50, icon: '🍩', classStr: '', details: '解锁数据分析中的高级环形图表视图。(Desbloquea el gráfico radial en Analytics).' },
-    { id: 'effect_avatar_float', name: '反重力头像', desc: 'Floating Avatar', price: 80, icon: '🎈', classStr: 'effect-avatar-float', details: '使你的自定义头像像失重一样上下浮动。(Haz que tu avatar flote de forma antigravedad).' },
-    { id: 'feature_analytics', name: '高级数据分析模块', desc: 'Unlock Analytics Tab', price: 100, icon: '📊', classStr: '', details: '解锁完整的数据分析页面。(Desbloquea la página completa de Analytics).' },
-    { id: 'feature_task_alarms', name: '智能任务警报系统', desc: 'Task Alarms System', price: 100, icon: '🔔', classStr: '', details: '解锁任务优先级提醒，紧急任务每10分钟报警！(Desbloquea alarmas para tareas urgentes cada 10 min).' },
+    { id: 'feature_radial_chart', name: '数据分析：环形图', desc: 'Unlock Radial Chart', price: 50, icon: '🍩', classStr: '', details: '解锁数据分析中的高级环形图表视图。<br><span class="sub-en">Desbloquea el gráfico radial en Analytics.</span>' },
+    { id: 'effect_avatar_float', name: '反重力头像', desc: 'Floating Avatar', price: 80, icon: '🎈', classStr: 'effect-avatar-float', details: '使你的自定义头像像失重一样上下浮动。<br><span class="sub-en">Haz que tu avatar flote de forma antigravedad.</span>' },
+    { id: 'feature_analytics', name: '高级数据分析模块', desc: 'Unlock Analytics Tab', price: 100, icon: '📊', classStr: '', details: '解锁完整的数据分析页面。<br><span class="sub-en">Desbloquea la página completa de Analytics.</span>' },
+    { id: 'feature_task_alarms', name: '智能任务警报系统', desc: 'Task Alarms System', price: 100, icon: '🔔', classStr: '', details: '解锁任务优先级提醒，紧急任务每10分钟报警！<br><span class="sub-en">Activa alarmas para tareas urgentes en segundo plano.</span>' },
     
     // COSMÉTICOS
-    { id: 'effect_dark_fantasy', name: '暗黑幻想光标', desc: 'Dark Fantasy Cursor', price: 15, icon: '⚔️', classStr: 'effect-dark-fantasy', details: '将鼠标指针变为黑暗奇幻风格的十字线。 (Cambia el cursor a cruz oscura).' },
-    { id: 'effect_cyberpunk', name: '赛博朋克边框', desc: 'Cyberpunk Inner Glow', price: 25, icon: '🌃', classStr: 'effect-cyberpunk', details: '为所有卡片添加赛博朋克风格的霓虹内发光。 (Añade resplandor neón interior).' },
-    { id: 'cursor_writer', name: '羽毛笔光标', desc: 'Quill Pen Cursor', price: 30, icon: '✒️', classStr: 'cursor-writer', details: '写作时使用的古典羽毛笔光标。 (Cursor clásico de pluma).' },
-    { id: 'cursor_med', name: '手术刀光标', desc: 'Scalpel Cursor', price: 30, icon: '🗡️', classStr: 'cursor-med', details: '高精度手术刀光标。 (Cursor en forma de bisturí).' },
-    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Background', price: 50, icon: '🐾', classStr: 'effect-leopard-paws', details: '背景应用复古滤镜。 (Filtro retro de leopardo).' },
-    { id: 'effect_med_pulse', name: '医疗心跳脉冲', desc: 'Medical Heartbeat Avatar', price: 150, icon: '⚕️', classStr: 'effect-med-pulse', details: '你的头像会像心脏一样跳动。 (Tu avatar latirá con un aura roja).' },
-    { id: 'profile_glitch', name: '故障艺术头像', desc: 'Glitch Profile Pic', price: 200, icon: '📺', classStr: 'profile-glitch', details: '为头像添加真正的色彩分离故障效果。 (Efecto de separación RGB en la foto de perfil).' },
-    { id: 'menu_glassmorphism', name: '极致玻璃态', desc: 'Ultra Glassmorphism Menus', price: 300, icon: '🧊', classStr: 'menu-glassmorphism', details: '使侧边栏变得极致透明且模糊。 (Menús de cristal extra difuminados).' },
-    { id: 'effect_cyber_grid', name: '科幻矩阵全息', desc: 'Sci-Fi Holographic Grid', price: 500, icon: '🛰️', classStr: 'effect-cyber-grid', details: '投影出全息科幻网格。 (Cuadrícula holográfica en el fondo).' },
-    { id: 'effect_chongqing_leopard', name: '重庆赛博神', desc: 'Ultimate Chongqing Aura', price: 1000, icon: '🐆', classStr: 'effect-chongqing-leopard', details: '界面亮起强烈的赛博霓虹色彩。 (Colores de neón ciberpunk extremos).' },
-    { id: 'effect_thunder_shatter', name: '雷霆碎裂', desc: 'Lightning Shatter', price: 1000, icon: '⚡', classStr: 'effect-thunder-shatter', details: '卡片产生真实的雷击碎裂闪光震撼效果。 (¡Efecto épico! Las tarjetas se agrietan con luz de relámpago).' }
+    { id: 'effect_dark_fantasy', name: '暗黑幻想光标', desc: 'Dark Fantasy Cursor', price: 15, icon: '⚔️', classStr: 'effect-dark-fantasy', details: '将鼠标指针变为黑暗奇幻风格的十字线。<br><span class="sub-en">Cambia el cursor a cruz oscura.</span>' },
+    { id: 'effect_cyberpunk', name: '赛博朋克边框', desc: 'Cyberpunk Inner Glow', price: 25, icon: '🌃', classStr: 'effect-cyberpunk', details: '为所有卡片添加赛博朋克风格的霓虹内发光。<br><span class="sub-en">Añade resplandor neón interior.</span>' },
+    { id: 'cursor_writer', name: '羽毛笔光标', desc: 'Quill Pen Cursor', price: 30, icon: '✒️', classStr: 'cursor-writer', details: '写作时使用的古典羽毛笔光标。<br><span class="sub-en">Cursor clásico de pluma.</span>' },
+    { id: 'cursor_med', name: '手术刀光标', desc: 'Scalpel Cursor', price: 30, icon: '🗡️', classStr: 'cursor-med', details: '高精度手术刀光标。<br><span class="sub-en">Cursor en forma de bisturí.</span>' },
+    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Background', price: 50, icon: '🐾', classStr: 'effect-leopard-paws', details: '背景应用复古滤镜。<br><span class="sub-en">Filtro retro de leopardo.</span>' },
+    { id: 'effect_med_pulse', name: '医疗心跳脉冲', desc: 'Medical Heartbeat Avatar', price: 150, icon: '⚕️', classStr: 'effect-med-pulse', details: '你的头像会像心脏一样跳动。<br><span class="sub-en">Tu avatar latirá con un aura roja.</span>' },
+    { id: 'profile_glitch', name: '故障艺术头像', desc: 'Glitch Profile Pic', price: 200, icon: '📺', classStr: 'profile-glitch', details: '为头像添加真正的色彩分离故障效果。<br><span class="sub-en">Efecto de separación RGB animado.</span>' },
+    { id: 'menu_glassmorphism', name: '极致玻璃态', desc: 'Ultra Glassmorphism Menus', price: 300, icon: '🧊', classStr: 'menu-glassmorphism', details: '使侧边栏变得极致透明且模糊。<br><span class="sub-en">Menús de cristal extra difuminados.</span>' },
+    { id: 'effect_cyber_grid', name: '科幻矩阵全息', desc: 'Sci-Fi Holographic Grid', price: 500, icon: '🛰️', classStr: 'effect-cyber-grid', details: '投影出全息科幻网格。<br><span class="sub-en">Cuadrícula holográfica en el fondo.</span>' },
+    { id: 'effect_chongqing_leopard', name: '重庆赛博神', desc: 'Ultimate Chongqing Aura', price: 1000, icon: '🐆', classStr: 'effect-chongqing-leopard', details: '界面亮起强烈的赛博霓虹色彩。<br><span class="sub-en">Colores de neón ciberpunk extremos.</span>' },
+    { id: 'effect_thunder_shatter', name: '雷霆碎裂', desc: 'Lightning Shatter', price: 1000, icon: '⚡', classStr: 'effect-thunder-shatter', details: '卡片产生真实的雷击碎裂闪光震撼效果。<br><span class="sub-en">¡Efecto épico! Las tarjetas se agrietan con luz de relámpago.</span>' }
 ];
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -365,7 +365,7 @@ function initApp() {
         document.getElementById('profileEditModal').style.display = 'none';
     };
 
-    document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup("测试动画", "这是来自测试的通知 ✨"); };
+    document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup("测试动画<br><span class='sub-en'>Test Animation</span>", "这是来自测试的通知 ✨<br><span class='sub-en'>This is a test notification.</span>"); };
 
     document.onkeydown = (e) => { 
         if (e.ctrlKey && e.code === 'Space') { e.preventDefault(); toggleTimer(); } 
@@ -375,20 +375,20 @@ function initApp() {
         document.getElementById('liveClock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     }, 1000);
 
-    // BACKGROUND TICKER (ALARMAS CADA MINUTO)
+    // BACKGROUND TICKER (ALARMAS INTELIGENTES CADA MINUTO)
     setInterval(() => {
         globalMinuteTicker++;
-        if (!userProfile.inventory || !userProfile.inventory.includes('feature_task_alarms')) return; // No tiene la mejora comprada
+        if (!userProfile.inventory || !userProfile.inventory.includes('feature_task_alarms')) return;
 
         const hasUrgent = todos.some(t => !t.done && t.priority === 'urgent');
         const hasMod = todos.some(t => !t.done && t.priority === 'moderate');
 
-        if (hasUrgent && globalMinuteTicker % 10 === 0) { // Cada 10 minutos
+        if (hasUrgent && globalMinuteTicker % 10 === 0) { 
             playAlarmSound();
-            showMilestonePopup("🚨 紧急任务提醒！", "你有未完成的紧急任务！(¡Tienes tareas URGENTES pendientes!)");
-        } else if (hasMod && globalMinuteTicker % 60 === 0) { // Cada 60 minutos
+            showMilestonePopup("🚨 紧急任务提醒！<br><span class='sub-en' style='font-size:1.2rem;'>Urgent Task!</span>", "你有未完成的紧急任务！<br><span class='sub-en'>You have pending urgent tasks!</span>");
+        } else if (hasMod && globalMinuteTicker % 60 === 0) { 
             playAlarmSound();
-            showMilestonePopup("⚠️ 中等任务提醒", "别忘了你的中等优先级任务。(No olvides tus tareas moderadas).");
+            showMilestonePopup("⚠️ 中等任务提醒<br><span class='sub-en' style='font-size:1.2rem;'>Moderate Task</span>", "别忘了你的中等优先级任务。<br><span class='sub-en'>Don't forget your moderate tasks.</span>");
         }
     }, 60000);
 
@@ -451,7 +451,7 @@ function toggleTimer() {
         
         if (duration > 3) { 
             saveLogToCloud(activeTimer.desc, activeTimer.projectId, activeTimer.tags, activeTimer.start, end, duration);
-            if(duration > 1800) showMilestonePopup("30分钟过去了！", "干得好！继续保持 ✨");
+            if(duration > 1800) showMilestonePopup("30分钟过去了！<br><span class='sub-en' style='font-size:1.2rem;'>30 minutes passed!</span>", "干得好！继续保持 ✨<br><span class='sub-en'>Great job! Keep it up</span>");
         }
         stopVisualTimer();
     }
@@ -471,15 +471,15 @@ function startVisualTimer() {
         document.getElementById('liveTimer').innerText = formatTime(elapsed);
 
         if (elapsed >= nextAlertSecs) {
-            showMilestonePopup("30分钟过去了！", "干得好！继续保持 ✨");
+            showMilestonePopup("30分钟过去了！<br><span class='sub-en' style='font-size:1.2rem;'>30 minutes passed!</span>", "干得好！继续保持 ✨<br><span class='sub-en'>Great job! Keep it up</span>");
             nextAlertSecs += 1800; 
         }
     }, 1000);
 }
 
 function showMilestonePopup(title, message) {
-    document.getElementById('popupTitle').innerText = title;
-    document.getElementById('popupMessage').innerText = message;
+    document.getElementById('popupTitle').innerHTML = title;
+    document.getElementById('popupMessage').innerHTML = message;
     const popup = document.getElementById('milestonePopup');
     popup.style.display = 'flex';
     playCelebrationSound(); 
@@ -556,7 +556,6 @@ function renderTodos() {
     const list = document.getElementById('todoList');
     list.innerHTML = '';
     todos.forEach(t => {
-        // Badges de prioridad
         let pBadge = '';
         if(t.priority === 'urgent') pBadge = '<span class="badge-priority" style="background:#ff6b6b; color:#fff;">🔴 Urgente</span>';
         else if(t.priority === 'moderate') pBadge = '<span class="badge-priority" style="background:#feca57; color:#000;">🟡 Mod</span>';
@@ -626,7 +625,7 @@ function updateDashboardStats() {
         userProfile.diamonds = (userProfile.diamonds || 0) + diamondsEarned;
         syncProfile();
         updateProfileUI();
-        showMilestonePopup("🎉 升级了！Level Up!", `你获得了 ${diamondsEarned} 💎 钻石!`);
+        showMilestonePopup("🎉 升级了！<br><span class='sub-en' style='font-size:1.2rem;'>Level Up!</span>", `你获得了 ${diamondsEarned} 💎 钻石!<br><span class='sub-en'>You earned ${diamondsEarned} Diamonds!</span>`);
         currentKnownLevel = levelData.level;
     } else {
         currentKnownLevel = levelData.level; 
@@ -708,7 +707,7 @@ async function buyItem(itemId, price) {
     applyPurchasedEffects();
     await syncProfile();
     
-    showMilestonePopup("购买成功！(Purchased!)", `✨ ${item.details}`);
+    showMilestonePopup("购买成功！<br><span class='sub-en' style='font-size:1.2rem;'>Purchased!</span>", `${item.details}`);
 }
 
 async function toggleEquipItem(itemId) {
@@ -739,6 +738,36 @@ function applyPurchasedEffects() {
             document.body.classList.add(item.classStr);
         }
     });
+
+    // Desbloqueos Visuales (Candados Dinámicos)
+    const navAnalytics = document.getElementById('navAnalyticsText');
+    if(navAnalytics) {
+        if(userProfile.inventory && userProfile.inventory.includes('feature_analytics')) {
+            navAnalytics.innerHTML = '数据分析 🔓 <span class="sub-en">Analytics</span>';
+        } else {
+            navAnalytics.innerHTML = '数据分析 🔒 <span class="sub-en">Analytics</span>';
+        }
+    }
+
+    const btnDoughnut = document.getElementById('btnDoughnutToggle');
+    if(btnDoughnut) {
+        if(userProfile.inventory && userProfile.inventory.includes('feature_radial_chart')) {
+            btnDoughnut.innerHTML = '🍩 🔓';
+            btnDoughnut.title = 'Gráfico Radial 🔓';
+        } else {
+            btnDoughnut.innerHTML = '🍩 🔒';
+            btnDoughnut.title = 'Gráfico Radial 🔒';
+        }
+    }
+    
+    const navTodos = document.getElementById('navTodosText');
+    if(navTodos) {
+        if(userProfile.inventory && userProfile.inventory.includes('feature_task_alarms')) {
+            navTodos.innerHTML = '待办事项 🔔 <span class="sub-en">Task List</span>';
+        } else {
+            navTodos.innerHTML = '待办事项 <span class="sub-en">Task List</span>';
+        }
+    }
 }
 
 // =========================================
@@ -759,7 +788,6 @@ function initAnalytics() {
     document.querySelectorAll('.btn-toggle').forEach(btn => {
         btn.onclick = (e) => {
             playCutePop();
-            // BLOQUEO DE GRÁFICO RADIAL
             if(e.currentTarget.dataset.type === 'doughnut') {
                 if(!userProfile.inventory || !userProfile.inventory.includes('feature_radial_chart')) {
                     alert('🔒 环形图表已锁定！请在商店购买。\n(¡Gráfico Radial bloqueado! Cómpralo en la tienda por 50 💎).');

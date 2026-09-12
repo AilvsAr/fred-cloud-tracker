@@ -30,13 +30,13 @@
         </div>
     </div>
 
-    <!-- POPUP DE CELEBRACIÓN Y ALARMAS -->
+    <!-- POPUP DE CELEBRACIÓN Y ALARMAS BILINGÜE -->
     <div id="milestonePopup" class="milestone-popup">
         <div id="confettiOverlay" class="confetti-overlay"></div> 
         <div class="milestone-content poly-card scale-in" style="z-index: 2; position: relative;">
             <img src="fredDance.gif" alt="Celebrate GIF">
             <h2 class="rainbow-text" id="popupTitle">干得好！</h2>
-            <p id="popupMessage" style="color: var(--text-dark); font-weight: 700; font-size: 1.1rem;">继续保持 ✨</p>
+            <p id="popupMessage" style="color: var(--text-dark); font-weight: 700; font-size: 1.1rem; line-height: 1.5;">继续保持 ✨</p>
         </div>
     </div>
 
@@ -102,9 +102,12 @@
                 <nav class="nav-menu">
                     <button class="nav-item active" data-target="view-timer"><span class="nav-icon">⏱️</span><div class="nav-text">时间追踪器 <span class="sub-en">Time Tracker</span></div></button>
                     <button class="nav-item" data-target="view-profile"><span class="nav-icon">🛡️</span><div class="nav-text">我的档案 <span class="sub-en">My Profile</span></div></button>
-                    <button class="nav-item" data-target="view-todos"><span class="nav-icon">📝</span><div class="nav-text">待办事项 <span class="sub-en">Task List</span></div></button>
+                    <button class="nav-item" data-target="view-todos"><span class="nav-icon">📝</span><div class="nav-text" id="navTodosText">待办事项 <span class="sub-en">Task List</span></div></button>
                     <button class="nav-item" data-target="view-projects"><span class="nav-icon">📁</span><div class="nav-text">我的项目 <span class="sub-en">My Projects</span></div></button>
-                    <button class="nav-item" data-target="view-reports"><span class="nav-icon">📊</span><div class="nav-text">数据分析 🔒 <span class="sub-en">Analytics</span></div></button>
+                    
+                    <!-- Analytics Menú Text (Con Candado Dinámico) -->
+                    <button class="nav-item" data-target="view-reports"><span class="nav-icon">📊</span><div class="nav-text" id="navAnalyticsText">数据分析 🔒 <span class="sub-en">Analytics</span></div></button>
+                    
                     <button class="nav-item" data-target="view-sounds"><span class="nav-icon">📻</span><div class="nav-text">专注音乐 <span class="sub-en">Focus Sounds</span></div></button>
                     
                     <button class="nav-item" data-target="view-shop" style="margin-top: 10px; background: rgba(0, 243, 255, 0.1); border: 1px dashed var(--secondary-color);">
@@ -272,6 +275,7 @@
                         </p>
                         
                         <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                            <!-- AQUÍ REEMPLAZAS "TU_USUARIO_AQUI" CON TU USUARIO REAL DE KO-FI -->
                             <a href="https://ko-fi.com/TU_USUARIO_AQUI" target="_blank" class="btn-primary-poly pop-anim" style="text-decoration: none; display: flex; align-items: center; background: #FF5E5B;">
                                 ☕ 赞助一杯咖啡 (Ko-fi)
                             </a>
@@ -282,7 +286,7 @@
                     </div>
                 </section>
 
-                <!-- VISTA 2: LISTA DE TAREAS (AHORA CON PRIORIDAD) -->
+                <!-- VISTA 2: LISTA DE TAREAS -->
                 <section id="view-todos" class="view-section">
                     <div class="form-panel poly-card bouncy-hover" style="margin-bottom: 25px;">
                         <h3 class="card-title">📌 新任务 <span class="sub-en">New Task</span></h3>
@@ -325,7 +329,8 @@
                         </div>
                         <div class="chart-toggles">
                             <button class="btn-toggle active" data-type="bar" title="Barras Verticales">📊</button>
-                            <button class="btn-toggle" data-type="doughnut" title="Gráfico Radial 🔒">🍩</button>
+                            <!-- BOTÓN DEL GRÁFICO RADIAL (CON CANDADO DINÁMICO) -->
+                            <button class="btn-toggle" data-type="doughnut" id="btnDoughnutToggle" title="Gráfico Radial 🔒">🍩 🔒</button>
                         </div>
                     </div>
 
