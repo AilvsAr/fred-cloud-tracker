@@ -38,31 +38,24 @@ function playCutePop() {
     osc.start(); osc.stop(audioCtx.currentTime + 0.1);
 }
 
-// Sonido de celebración feliz (estilo RPG Level Up)
+// NUEVA MAGIA: Sonido de "Level Up" mágico para los 30 minutos
 function playCelebrationSound() {
     if(audioCtx.state === 'suspended') audioCtx.resume();
-    
-    // Frecuencias para un acorde mayor ascendente (A4, C#5, E5, A5)
-    const notes = [440, 554.37, 659.25, 880]; 
-    
+    // Un arpegio energético tipo RPG
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98]; // C5, E5, G5, C6, E6, G6
     notes.forEach((freq, i) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.connect(gain); 
+        osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
-        osc.type = 'triangle'; // Tono retro y suave
+        osc.type = 'sine';
         osc.frequency.value = freq;
-        
-        // Ritmo: cada nota suena un poquito después de la anterior
-        const startTime = audioCtx.currentTime + (i * 0.12);
-        
+        const startTime = audioCtx.currentTime + (i * 0.08);
         gain.gain.setValueAtTime(0, startTime);
-        gain.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
-        
+        gain.gain.linearRampToValueAtTime(0.1, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
         osc.start(startTime);
-        osc.stop(startTime + 0.5);
+        osc.stop(startTime + 0.4);
     });
 }
 
@@ -203,8 +196,6 @@ function initApp() {
     });
     // ----------------------------
 
-    
-
     const btnToggle = document.getElementById('btnToggle');
     const newBtnToggle = btnToggle.cloneNode(true);
     btnToggle.parentNode.replaceChild(newBtnToggle, btnToggle);
@@ -252,7 +243,7 @@ function initApp() {
         playCutePop();
     };
 
-    // BOTÓN DE PRUEBA
+    // BOTÓN DE PRUEBA DE ANIMACIÓN MEJORADO
     document.getElementById('btnTestPopup').onclick = () => {
         showMilestonePopup();
     };
@@ -340,14 +331,15 @@ function startVisualTimer() {
     }, 1000);
 }
 
+// LA NUEVA FUNCIÓN DEL POPUP CON SONIDO MÁGICO
 function showMilestonePopup() {
     const popup = document.getElementById('milestonePopup');
     popup.style.display = 'flex';
     
-    // 1. Reproducir el nuevo sonido de victoria "Yay!"
+    // Sonido súper genial RPG
     playCelebrationSound(); 
     
-    // 2. Disparar la lluvia de emojis (Confeti con 🐾, 🔥, 🎉)
+    // Lluvia de emojis épica
     launchConfetti(); 
 
     setTimeout(() => { popup.style.display = 'none'; }, 5000);
@@ -486,17 +478,19 @@ function renderVerticalChart() {
     });
 }
 
+// LA NUEVA LLUVIA ÉPICA DE EMOJIS (¡Incluye más emojis cool y un mejor timing!)
 function launchConfetti() {
     const overlay = document.getElementById('confettiOverlay');
-    const emojis = ['🎉', '✨', '🐾', '🔥', '🌸', '🏆'];
-    for(let i=0; i<35; i++) {
+    const emojis = ['🎉', '✨', '🐾', '🔥', '🌸', '🏆', '💊', '⚕️']; 
+    for(let i=0; i<60; i++) {
         const drop = document.createElement('div');
         drop.className = 'emoji-drop';
         drop.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-        drop.style.left = Math.random() * 100 + 'vw';
-        drop.style.animationDuration = (Math.random() * 2 + 2) + 's'; 
+        drop.style.left = (Math.random() * 100) + 'vw';
+        drop.style.animationDuration = (Math.random() * 3 + 2) + 's'; 
+        drop.style.animationDelay = (Math.random() * 0.5) + 's';
         overlay.appendChild(drop);
-        setTimeout(() => drop.remove(), 4000);
+        setTimeout(() => drop.remove(), 6000);
     }
 }
 
