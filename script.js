@@ -38,6 +38,34 @@ function playCutePop() {
     osc.start(); osc.stop(audioCtx.currentTime + 0.1);
 }
 
+// Sonido de celebración feliz (estilo RPG Level Up)
+function playCelebrationSound() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    
+    // Frecuencias para un acorde mayor ascendente (A4, C#5, E5, A5)
+    const notes = [440, 554.37, 659.25, 880]; 
+    
+    notes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); 
+        gain.connect(audioCtx.destination);
+        
+        osc.type = 'triangle'; // Tono retro y suave
+        osc.frequency.value = freq;
+        
+        // Ritmo: cada nota suena un poquito después de la anterior
+        const startTime = audioCtx.currentTime + (i * 0.12);
+        
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.5);
+    });
+}
+
 function applyTheme(themeName) {
     document.body.setAttribute('data-theme', themeName);
     localStorage.setItem('fred_theme', themeName);
@@ -315,7 +343,13 @@ function startVisualTimer() {
 function showMilestonePopup() {
     const popup = document.getElementById('milestonePopup');
     popup.style.display = 'flex';
-    playCutePop(); setTimeout(() => { playCutePop(); }, 300);
+    
+    // 1. Reproducir el nuevo sonido de victoria "Yay!"
+    playCelebrationSound(); 
+    
+    // 2. Disparar la lluvia de emojis (Confeti con 🐾, 🔥, 🎉)
+    launchConfetti(); 
+
     setTimeout(() => { popup.style.display = 'none'; }, 5000);
 }
 
