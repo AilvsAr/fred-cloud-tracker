@@ -221,16 +221,6 @@ async function syncProfile() {
 // =========================================
 function initApp() {
     setupNavigation();
-    
-    // 🔥 CÓDIGO DE TRAMPA VIP 🔥
-    if (!userProfile.vipBonusClaimed) {
-        userProfile.diamonds = (userProfile.diamonds || 0) + 100000;
-        userProfile.vipBonusClaimed = true;
-        if(!userProfile.equipped) userProfile.equipped = [];
-        syncProfile(); 
-        alert("💎 VIP ACCESS: Se han añadido 100,000 diamantes a tu cuenta de desarrollador. ¡Disfruta la tienda!");
-    }
-
     updateProfileUI(); 
     initAnalytics(); 
     updateProjectSelects();
@@ -663,7 +653,6 @@ function renderShop() {
         
         let btnHTML = '';
         if (isOwned) {
-            // Si es un feature (funcionalidad), no necesita equiparse, solo se posee
             if (item.classStr === '') {
                 btnHTML = `<button class="btn-buy disabled" style="background:var(--input-bg); color:var(--text-muted);">已拥有 Owned</button>`;
             } else if (isEquipped) {
@@ -700,7 +689,7 @@ async function buyItem(itemId, price) {
     if(!userProfile.equipped) userProfile.equipped = [];
     
     userProfile.inventory.push(itemId);
-    if(item.classStr !== '') userProfile.equipped.push(itemId); // Solo los cosméticos se equipan
+    if(item.classStr !== '') userProfile.equipped.push(itemId); 
     
     updateProfileUI();
     renderShop();
