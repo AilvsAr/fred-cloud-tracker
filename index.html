@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fred's Cloud Tracker 🐾</title>
+    <link rel="icon" href="fredIcon.png" type="image/jpeg">
+    <!-- El ?v=Fred1 obliga a tu navegador a descargar los colores nuevos -->
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- OVERLAY DE LOGIN -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card poly-card bouncy-hover scale-in">
+            <div class="avatar-frame pulse-anim" style="margin-bottom: 20px;">
+                <div class="avatar-poly avatar-ear-l"></div>
+                <div class="avatar-poly avatar-ear-r"></div>
+                <div class="avatar-poly avatar-face"></div>
+                <div class="avatar-poly avatar-snout">🐾</div>
+            </div>
+            <h2>登录系统 <span class="sub-en">System Login</span></h2>
+            <p>连接您的神经链接 <br><span class="sub-en">Connect your neural link</span></p>
+            <button id="btnLoginGoogle" class="btn-primary-poly pop-anim" style="margin-top: 20px; width: 100%;">
+                使用 Google 登录 <span class="sub-en" style="color: #fff;">Log in with Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- POPUP 30 MINUTOS -->
+    <div id="milestonePopup" class="milestone-popup">
+        <div class="milestone-content poly-card scale-in">
+            <img src="fredDance.gif" alt="Celebrate GIF">
+            <h2 class="rainbow-text">30分钟过去了！<span class="sub-en">30 minutes have passed!</span></h2>
+            <p>干得好！继续保持 ✨<span class="sub-en">Great job! Keep it up</span></p>
+        </div>
+    </div>
+
+    <div class="bg-decor bg-poly-1"></div>
+    <div class="bg-decor bg-poly-2"></div>
+    <div class="bg-decor bg-poly-3"></div>
+
+    <div class="app-container slide-in-bottom">
+        
+        <!-- BARRA LATERAL OPTIMIZADA PARA PANTALLAS COMPACTAS -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="user-profile">
+                    <div class="avatar-frame">
+                        <div class="avatar-poly avatar-ear-l"></div>
+                        <div class="avatar-poly avatar-ear-r"></div>
+                        <div class="avatar-poly avatar-face"></div>
+                        <div class="avatar-poly avatar-snout">🐾</div>
+                    </div>
+                    <h1 class="user-name">弗雷德</h1>
+                    <span class="user-title">Fred Jitterbet ✨</span>
+                    
+                    <div class="rpg-stats bouncy-hover">
+                        <div class="level-badge">Lv. <span id="rpgLevel">1</span></div>
+                        <div class="xp-bar-container"><div class="xp-fill glow-anim" id="rpgXpFill"></div></div>
+                        <div class="xp-text" id="rpgXpText">0 / 1000 XP</div>
+                    </div>
+                </div>
+
+                <nav class="nav-menu">
+                    <button class="nav-item active" data-target="view-timer">
+                        <span class="nav-icon">⏱️</span>
+                        <div class="nav-text">时间追踪器 <span class="sub-en">Time Tracker</span></div>
+                    </button>
+                    <button class="nav-item" data-target="view-todos">
+                        <span class="nav-icon">📝</span>
+                        <div class="nav-text">待办事项 <span class="sub-en">Task List</span></div>
+                    </button>
+                    <button class="nav-item" data-target="view-projects">
+                        <span class="nav-icon">📁</span>
+                        <div class="nav-text">我的项目 <span class="sub-en">My Projects</span></div>
+                    </button>
+                    <button class="nav-item" data-target="view-reports">
+                        <span class="nav-icon">📊</span>
+                        <div class="nav-text">数据分析 <span class="sub-en">Analytics</span></div>
+                    </button>
+                    <button class="nav-item" data-target="view-sounds">
+                        <span class="nav-icon">📻</span>
+                        <div class="nav-text">专注音乐 <span class="sub-en">Focus Sounds</span></div>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- LOGOUT AHORA ESTÁ AQUÍ PARA QUE NO SE CORTE -->
+            <div class="sidebar-bottom">
+                <div class="theme-switcher">
+                    <button class="theme-btn" data-theme="pastel" title="Pastel Cloud">🌸</button>
+                    <button class="theme-btn" data-theme="chongqing" title="Neon Chongqing">🌃</button>
+                    <button class="theme-btn" data-theme="dark" title="Midnight Leopard">🐾</button>
+                    <button id="btnLogout" class="btn-text danger pop-anim" style="margin-left: 5px; padding: 5px 12px; border-radius: 12px;" title="Cerrar Sesión">🚪 出去</button>
+                </div>
+
+                <!-- NUEVO: INTERRUPTOR DE ENERGÍA NEÓN -->
+                <div class="neon-toggle-container">
+                    <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">⚡ 霓虹灯流 <span class="sub-en" style="display:inline;">Neon Flow</span></span>
+                    <label class="switch">
+                        <input type="checkbox" id="neonFlowToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="sidebar-widget">
+                    <h3 style="margin-bottom: 5px;">今日重点 <span class="sub-en">Today's Focus</span></h3>
+                    <div class="focus-bar"><div class="focus-fill" id="dailyFocusFill"></div></div>
+                    <p id="focusText" style="font-size: 0.9rem;">0 小时 / 4 小时 <span class="sub-en">0 hrs / 4 hrs</span></p>
+                </div>      
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content">
+            <header class="top-header slide-in-top">
+                <div class="header-greeting">
+                    <h2 id="greetingText">早上好，弗雷德！☀️ <span class="sub-en">Good Morning, Fred!</span></h2>
+                    <p>云连接稳定。准备工作。<span class="sub-en">Cloud connection stable. Ready to work.</span></p>
+                </div>
+                <div class="header-stats">
+                    <div class="mini-stat bouncy-hover">
+                        <span class="stat-icon">🔥</span>
+                        <div class="stat-info">
+                            <span class="stat-num" id="tasksDone">0</span>
+                            <span class="stat-label">已完成 <span class="sub-en">Done</span></span>
+                        </div>
+                    </div>
+                    <div class="clock" id="liveClock">00:00</div>
+                </div>
+            </header>
+
+            <div class="views-container">
+                <!-- VISTA 1: TEMPORIZADOR (Aquí está el botón 🎁) -->
+                <section id="view-timer" class="view-section active">
+                    <div class="tracker-dashboard">
+                        <div class="tracker-main poly-card bouncy-hover">
+                            <h3 class="card-title">✨ 我们现在做什么？ <span class="sub-en">What are we doing now?</span></h3>
+                            <div class="input-row">
+                                <input type="text" id="taskDesc" class="input-cute" placeholder="例如：写小说，HSK练习 (E.g., Novel, HSK drills)...">
+                                <select id="taskProject" class="select-cute"><option value="">加载中... (Loading)</option></select>
+                            </div>
+                            <div class="input-row"><input type="text" id="taskTags" class="input-cute input-tags" placeholder="#标签 (e.g., #focus, #exam)"></div>
+                            <div class="timer-display-area">
+                                <div class="time-display" id="liveTimer">00:00:00</div>
+                                <button class="btn-play-poly" id="btnToggle"><span class="btn-icon">▶</span></button>
+                            </div>
+                            
+                            <div class="action-row-bottom">
+                                <button id="btnOpenManual" class="btn-text">忘记记录了？手动添加 ✍️ <span class="sub-en">Forgot? Add manual</span></button>
+                                <!-- BOTÓN DE PRUEBA -->
+                                <button id="btnTestPopup" class="btn-text highlight-text pop-anim">测试动画 🎁 <span class="sub-en">Test Popup</span></button>
+                            </div>
+                        </div>
+
+                        <div class="manual-add-panel poly-card scale-in" id="manualAddPanel" style="display: none;">
+                            <h3 class="card-title">📝 添加记录 <span class="sub-en">Add Session</span></h3>
+                            <input type="number" id="manualMinutes" class="input-cute" placeholder="分钟 (Minutes)" min="1">
+                            <div class="manual-actions">
+                                <button class="btn-primary-poly small" id="btnSaveManual">保存 <span class="sub-en" style="color:#fff;">Save</span></button>
+                                <button class="btn-text" id="btnCancelManual">取消 <span class="sub-en">Cancel</span></button>
+                            </div>
+                        </div>
+
+                        <div class="quick-stats poly-card bouncy-hover">
+                            <h3 class="card-title">🌟 快速统计 <span class="sub-en">Quick Stats</span></h3>
+                            <ul class="cute-list" id="quickStatsList">
+                                <li>等待你的第一个任务... <span class="sub-en">Waiting for first task...</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="logs-header-area"><h3 class="section-subtitle">最近的冒险 🗺️ <span class="sub-en">Recent Adventures</span></h3></div>
+                    <div class="logs-container" id="logListContainer"></div>
+                </section>
+
+                <!-- VISTA 2: LISTA DE TAREAS -->
+                <section id="view-todos" class="view-section">
+                    <div class="form-panel poly-card bouncy-hover" style="margin-bottom: 25px;">
+                        <h3 class="card-title">📌 新任务 <span class="sub-en">New Task</span></h3>
+                        <div class="project-inputs">
+                            <input type="text" id="newTodoInput" class="input-cute" placeholder="输入你想做的事情 (What do you need to do?)..." style="flex:1;">
+                            <button class="btn-primary-poly pop-anim" id="btnAddTodo">添加任务 ✨ <span class="sub-en" style="color:#fff;">Add Task</span></button>
+                        </div>
+                    </div>
+                    <div class="todo-list-container poly-card"><h3 class="card-title">清单 <span class="sub-en">Checklist</span></h3><div id="todoList" class="todo-list"></div></div>
+                </section>
+
+                <!-- VISTA 3: PROYECTOS -->
+                <section id="view-projects" class="view-section">
+                    <div class="form-panel poly-card bouncy-hover">
+                        <h3 class="card-title">🎨 创建新旅程 <span class="sub-en">Create a New Journey</span></h3>
+                        <div class="project-inputs">
+                            <input type="text" id="newProjName" class="input-cute" placeholder="项目名称 (Project Name)..." style="flex: 1;">
+                            <div class="color-picker-wrapper"><input type="color" id="newProjColor" class="input-color" value="#ffb3ba"></div>
+                            <button class="btn-primary-poly pop-anim" id="btnAddProject">添加项目 ✨ <span class="sub-en" style="color:#fff;">Add Project</span></button>
+                        </div>
+                    </div>
+                    <h3 class="section-subtitle" style="margin: 30px 0 20px;">活跃项目 📚 <span class="sub-en">Active Projects</span></h3>
+                    <div class="project-grid" id="projectList"></div>
+                </section>
+
+                <!-- VISTA 4: REPORTES -->
+                <section id="view-reports" class="view-section">
+                    <div class="stats-grid">
+                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">总投入时间 <span class="sub-en">Total Time</span></span><span class="stat-value" id="repTotalTime">0h 0m</span></div>
+                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">总会话数 <span class="sub-en">Total Sessions</span></span><span class="stat-value" id="repTotalSessions">0</span></div>
+                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">最爱项目 <span class="sub-en">Fav Project</span></span><span class="stat-value" id="repFavProject">-</span></div>
+                    </div>
+                    <div class="chart-panel poly-card bouncy-hover">
+                        <div class="chart-header"><h3 class="card-title">📊 时间分布 <span class="sub-en">Time Distribution</span></h3><button class="btn-primary-poly small pop-anim" id="btnExportCSV">📥 导出 CSV <span class="sub-en" style="color:#fff;">Export CSV</span></button></div>
+                        <div class="vertical-chart-container" id="verticalChart"></div>
+                    </div>
+                </section>
+
+                <!-- VISTA 5: SONIDOS -->
+                <section id="view-sounds" class="view-section">
+                    <div class="poly-card bouncy-hover">
+                        <h3 class="card-title">📻 专注音乐发生器 <span class="sub-en">Focus Sound Generator</span></h3>
+                        <p style="color: var(--text-muted); margin-bottom: 30px; font-size: 1.1rem;">这些声音是由浏览器实时生成的，帮助你进入深度工作状态。<br><span class="sub-en">These sounds are synthesized mathematically by your browser to help you focus.</span></p>
+                        <div class="sounds-grid">
+                            <div class="sound-card bouncy-hover"><div class="sound-icon pulse-anim">🌧️</div><h4>雨声 <span class="sub-en">Heavy Rain</span></h4><button class="btn-sound pop-anim" id="btnRain">播放 Play</button></div>
+                            <div class="sound-card bouncy-hover"><div class="sound-icon pulse-anim">🌊</div><h4>海浪 <span class="sub-en">Ocean Waves</span></h4><button class="btn-sound pop-anim" id="btnWaves">播放 Play</button></div>
+                            <div class="sound-card bouncy-hover"><div class="sound-icon pulse-anim">📻</div><h4>棕色噪音 <span class="sub-en">Brown Noise</span></h4><button class="btn-sound pop-anim" id="btnBrown">播放 Play</button></div>
+                            <div class="sound-card bouncy-hover" style="grid-column: 1 / -1; background: var(--primary-color);"><div class="sound-icon" style="color: #fff; animation: none;">🛑</div><h4 style="color: #fff;">停止所有声音 <span class="sub-en" style="color: rgba(255,255,255,0.8);">Stop all sounds</span></h4><button class="btn-sound pop-anim" id="btnStopSounds" style="background: #fff; color: var(--text-dark); box-shadow: 0 5px 15px rgba(0,0,0,0.2);">停止 Stop</button></div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="confettiOverlay" class="confetti-overlay"></div>
+    <script src="script.js"></script>
+</body>
+</html>
