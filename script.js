@@ -22,11 +22,16 @@ let projects = [];
 let logs = [];
 let todos = []; 
 let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '' };
-let tempProfilePicBase64 = ''; // Variable para almacenar la imagen temporalmente
+let tempProfilePicBase64 = ''; 
 
 let activeTimer = JSON.parse(localStorage.getItem('fred_cloud_active')) || null;
 let timerInterval = null;
 let nextAlertSecs = 1800; // 30 minutos
+
+// Chart.js Globals
+let analyticsChartInstance = null;
+let currentChartType = 'bar';
+let currentTimeFilter = 'weekly';
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playCutePop() {
@@ -66,6 +71,10 @@ function applyTheme(themeName) {
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === themeName);
     });
+    // Si la gráfica está viva, la repintamos para actualizar los colores de las letras
+    if (analyticsChartInstance) {
+        renderAnalytics();
+    }
 }
 
 // =========================================
@@ -121,6 +130,7 @@ async function saveLogToCloud(desc, projectId, tags, start, end, duration) {
     const docRef = await db.collection('users').doc(currentUser.uid).collection('logs').add(newLog);
     logs.unshift({ id: docRef.id, ...newLog });
     renderLogs(); updateDashboardStats();
+    if(document.getElementById('view-reports').classList.contains('active')) renderAnalytics();
 }
 
 async function saveProjectToCloud(name, color) {
@@ -133,6 +143,7 @@ async function deleteLogFromCloud(logId) {
     await db.collection('users').doc(currentUser.uid).collection('logs').doc(logId).delete();
     logs = logs.filter(l => l.id !== logId);
     renderLogs(); updateDashboardStats();
+    if(document.getElementById('view-reports').classList.contains('active')) renderAnalytics();
 }
 
 async function deleteProjectFromCloud(projId) {
@@ -140,6 +151,7 @@ async function deleteProjectFromCloud(projId) {
     projects = projects.filter(p => p.id !== projId);
     logs = logs.map(l => l.projectId === projId ? {...l, projectId: null} : l);
     renderProjects(); updateProjectSelects(); renderLogs();
+    if(document.getElementById('view-reports').classList.contains('active')) renderAnalytics();
 }
 
 async function saveTodoToCloud(text) {
@@ -168,6 +180,7 @@ async function deleteTodoCloud(todoId) {
 function initApp() {
     setupNavigation();
     updateProfileUI(); 
+    initAnalytics(); // Inicializar filtros de Chart.js
     updateProjectSelects();
     renderLogs();
     renderProjects();
@@ -236,7 +249,7 @@ function initApp() {
         playCutePop();
     };
 
-    // --- LÓGICA DEL EDITOR DE PERFIL (CON SUBIDA DE ARCHIVOS) ---
+    // LÓGICA DEL EDITOR DE PERFIL (CON SUBIDA DE ARCHIVOS)
     document.getElementById('btnEditProfile').onclick = () => {
         playCutePop();
         document.getElementById('editProfileName').value = userProfile.name || '';
@@ -257,18 +270,16 @@ function initApp() {
         document.getElementById('editProfilePicFile').click();
     };
 
-    // MAGIA DE FILE READER (Convierte imagen local a texto para guardar en nube)
     document.getElementById('editProfilePicFile').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
-            // Límite de 1MB para proteger tu base de datos de Firebase
             if(file.size > 1048576) {
                 alert("图片太大！请选择小于 1MB 的图片。\n(¡La imagen es muy grande! Por favor elige una de menos de 1MB).");
                 return;
             }
             const reader = new FileReader();
             reader.onload = function(e) {
-                tempProfilePicBase64 = e.target.result; // El resultado es un string Base64
+                tempProfilePicBase64 = e.target.result; 
                 document.getElementById('fileUploadPreview').innerText = '✅ 图片就绪 (¡Imagen lista!)';
                 playCutePop();
             };
@@ -280,7 +291,7 @@ function initApp() {
         playCutePop();
         tempProfilePicBase64 = '';
         document.getElementById('fileUploadPreview').innerText = '🐾 已恢复默认头像 (Avatar por defecto activado)';
-        document.getElementById('editProfilePicFile').value = ''; // Limpiar el input
+        document.getElementById('editProfilePicFile').value = ''; 
     };
 
     document.getElementById('btnCancelProfile').onclick = () => {
@@ -308,7 +319,6 @@ function initApp() {
         btn.innerHTML = '保存 <span class="sub-en" style="color:#fff;">Save</span>';
         document.getElementById('profileEditModal').style.display = 'none';
     };
-    // -----------------------------------
 
     document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup(); };
 
@@ -346,7 +356,7 @@ function setupNavigation() {
             const targetId = e.currentTarget.getAttribute('data-target');
             document.getElementById(targetId).classList.add('active');
             
-            if(targetId === 'view-reports') renderVerticalChart();
+            if(targetId === 'view-reports') renderAnalytics();
         };
     });
 }
@@ -414,7 +424,7 @@ function stopVisualTimer() {
 }
 
 // =========================================
-// 9. UI RENDERERS Y SISTEMA DE NIVELES PROGRESIVO
+// 9. UI RENDERERS Y SISTEMA DE NIVELES
 // =========================================
 
 function updateProfileUI() {
@@ -548,36 +558,144 @@ function updateDashboardStats() {
     }
 }
 
-function renderVerticalChart() {
-    const totalSecs = logs.reduce((acc, l) => acc + l.duration, 0);
+// =========================================
+// 10. CHART.JS ANALYTICS ENGINE
+// =========================================
+
+function initAnalytics() {
+    document.querySelectorAll('.btn-filter').forEach(btn => {
+        btn.onclick = (e) => {
+            playCutePop();
+            document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentTimeFilter = e.target.dataset.filter;
+            renderAnalytics();
+        }
+    });
+
+    document.querySelectorAll('.btn-toggle').forEach(btn => {
+        btn.onclick = (e) => {
+            playCutePop();
+            document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            currentChartType = e.currentTarget.dataset.type;
+            renderAnalytics();
+        }
+    });
+}
+
+function renderAnalytics() {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    
+    // Configuración para el inicio de la semana (Lunes como primer día)
+    const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; 
+    const startOfWeek = startOfToday - (dayOfWeek * 86400000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const startOfYear = new Date(now.getFullYear(), 0, 1).getTime();
+
+    // Filtrar los logs
+    let filteredLogs = logs.filter(l => {
+        if(currentTimeFilter === 'all') return true;
+        if(currentTimeFilter === 'daily') return l.start >= startOfToday;
+        if(currentTimeFilter === 'weekly') return l.start >= startOfWeek;
+        if(currentTimeFilter === 'monthly') return l.start >= startOfMonth;
+        if(currentTimeFilter === 'yearly') return l.start >= startOfYear;
+        return true;
+    });
+
+    // Actualizar Textos
+    const totalSecs = filteredLogs.reduce((acc, l) => acc + l.duration, 0);
     document.getElementById('repTotalTime').innerText = formatDurationStr(totalSecs);
-    document.getElementById('repTotalSessions').innerText = logs.length;
-    const container = document.getElementById('verticalChart');
-    container.innerHTML = '';
+    document.getElementById('repTotalSessions').innerText = filteredLogs.length;
 
     if (totalSecs === 0) {
-        container.innerHTML = '<p style="align-self: center; color: var(--text-muted); font-size: 1.2rem;">暂无数据 <span class="sub-en">No data yet 🌸</span></p>';
-        document.getElementById('repFavProject').innerText = '-'; return;
+        document.getElementById('repFavProject').innerText = '-';
+        if(analyticsChartInstance) { analyticsChartInstance.destroy(); analyticsChartInstance = null; }
+        return;
     }
 
+    // Agrupar por Proyecto
     const projTotals = {};
-    logs.forEach(l => { projTotals[l.projectId || 'none'] = (projTotals[l.projectId || 'none'] || 0) + l.duration; });
+    filteredLogs.forEach(l => { 
+        const pId = l.projectId || 'none';
+        projTotals[pId] = (projTotals[pId] || 0) + l.duration; 
+    });
     const sorted = Object.entries(projTotals).sort((a,b) => b[1] - a[1]);
     
-    const favProj = sorted[0][0] === 'none' ? {name: '日常 (General)'} : projects.find(p => p.id == sorted[0][0]);
+    const favProjId = sorted[0][0];
+    const favProj = favProjId === 'none' ? {name: '日常 (General)'} : projects.find(p => p.id === favProjId);
     document.getElementById('repFavProject').innerText = favProj ? favProj.name : '-';
 
+    // Preparar Data para Chart.js
+    const labels = [];
+    const dataVals = [];
+    const bgColors = [];
+
     sorted.forEach(([pid, duration]) => {
-        const proj = pid === 'none' ? {name: '日常 (Gen)', color: 'var(--text-muted)'} : projects.find(p => p.id == pid);
+        const proj = pid === 'none' ? {name: '日常 (Gen)', color: '#636e72'} : projects.find(p => p.id === pid);
         if(!proj) return;
-        const hPct = Math.max((duration / sorted[0][1]) * 100, 10); 
-        container.innerHTML += `
-            <div class="chart-bar-wrapper" title="${proj.name}: ${formatDurationStr(duration)}">
-                <div class="chart-bar" style="height: ${hPct}%; background-color: ${proj.color};">
-                    <span class="chart-value">${formatDurationStr(duration)}</span>
-                </div>
-                <div class="chart-label-bottom">${proj.name}</div>
-            </div>`;
+        labels.push(proj.name);
+        dataVals.push(duration / 3600); // Horas
+        bgColors.push(proj.color || '#636e72');
+    });
+
+    // Color del texto según el Tema actual (Claro u Oscuro)
+    const isDark = document.body.getAttribute('data-theme') !== 'pastel';
+    const textColor = isDark ? '#f8fafc' : '#2d3436';
+
+    const ctx = document.getElementById('analyticsChart').getContext('2d');
+    if (analyticsChartInstance) {
+        analyticsChartInstance.destroy();
+    }
+
+    // Renderizar Gráfica
+    analyticsChartInstance = new Chart(ctx, {
+        type: currentChartType, // 'bar' o 'doughnut'
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '小时 (Hours)',
+                data: dataVals,
+                backgroundColor: bgColors,
+                borderWidth: currentChartType === 'doughnut' ? 2 : 0,
+                borderColor: isDark ? '#121212' : '#ffffff',
+                borderRadius: currentChartType === 'bar' ? 8 : 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: currentChartType === 'doughnut',
+                    position: 'right',
+                    labels: { color: textColor, font: { family: 'Noto Sans SC', size: 14 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let val = context.raw;
+                            let hrs = Math.floor(val);
+                            let mins = Math.round((val - hrs) * 60);
+                            return ` ${hrs}h ${mins}m`;
+                        }
+                    }
+                }
+            },
+            scales: currentChartType === 'bar' ? {
+                y: { 
+                    beginAtZero: true, 
+                    ticks: { color: textColor }, 
+                    grid: { color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' } 
+                },
+                x: { 
+                    ticks: { color: textColor, font: { family: 'Noto Sans SC', weight: 'bold' } },
+                    grid: { display: false } 
+                }
+            } : { x: {display: false}, y: {display: false} }
+        }
     });
 }
 

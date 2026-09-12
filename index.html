@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Librería para Gráficos Profesionales -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
@@ -41,7 +44,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDITAR PERFIL ACTUALIZADO PARA SUBIR ARCHIVOS LOCALES -->
+    <!-- MODAL EDITAR PERFIL -->
     <div id="profileEditModal" class="milestone-popup" style="display: none; z-index: 10006;">
         <div class="poly-card scale-in" style="width: 90%; max-width: 400px; padding: 30px; position: relative;">
             <h3 class="card-title">✏️ 编辑档案 <span class="sub-en">Edit Profile</span></h3>
@@ -56,18 +59,11 @@
                 </div>
                 <div>
                     <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">上传头像 (Upload Profile Pic)</label>
-                    
-                    <!-- Input de archivo oculto -->
                     <input type="file" id="editProfilePicFile" accept="image/*" style="display: none;">
-                    
-                    <!-- Botón bonito que activa el input -->
                     <button type="button" class="btn-primary-poly small pop-anim" id="btnTriggerFileUpload" style="width: 100%; background: var(--input-bg); color: var(--text-dark); border: 2px dashed var(--secondary-color); box-shadow: none;">
                         📂 从设备选择图片 (Choose from device)
                     </button>
-                    
                     <div id="fileUploadPreview" style="margin-top: 10px; font-size: 0.8rem; color: var(--primary-color); text-align: center; font-weight: bold;"></div>
-                    
-                    <!-- Botón para quitar foto y volver al Avatar Poly -->
                     <button type="button" class="btn-text" id="btnRemoveProfilePic" style="width: 100%; text-align: center; margin-top: 5px; font-size: 0.8rem;">
                         🗑️ 移除照片 (Use default avatar)
                     </button>
@@ -294,16 +290,36 @@
                     <div class="project-grid" id="projectList"></div>
                 </section>
 
-                <!-- VISTA 4: REPORTES -->
+                <!-- VISTA 4: REPORTES (TOTALMENTE REDISEÑADO CON CHART.JS) -->
                 <section id="view-reports" class="view-section">
-                    <div class="stats-grid">
-                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">总投入时间 <span class="sub-en">Total Time</span></span><span class="stat-value" id="repTotalTime">0h 0m</span></div>
-                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">总会话数 <span class="sub-en">Total Sessions</span></span><span class="stat-value" id="repTotalSessions">0</span></div>
-                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">最爱项目 <span class="sub-en">Fav Project</span></span><span class="stat-value" id="repFavProject">-</span></div>
+                    
+                    <!-- NUEVOS CONTROLES DE ANALYTICS -->
+                    <div class="analytics-controls poly-card bouncy-hover" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div class="time-filters">
+                            <button class="btn-filter" data-filter="daily">今日 Daily</button>
+                            <button class="btn-filter active" data-filter="weekly">本周 Weekly</button>
+                            <button class="btn-filter" data-filter="monthly">本月 Monthly</button>
+                            <button class="btn-filter" data-filter="yearly">今年 Yearly</button>
+                            <button class="btn-filter" data-filter="all">全部 All Time</button>
+                        </div>
+                        <div class="chart-toggles">
+                            <button class="btn-toggle active" data-type="bar" title="Barras Verticales">📊</button>
+                            <button class="btn-toggle" data-type="doughnut" title="Gráfico Radial">🍩</button>
+                        </div>
                     </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">总投入时间 <span class="sub-en">Period Time</span></span><span class="stat-value" id="repTotalTime">0h 0m</span></div>
+                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">总会话数 <span class="sub-en">Period Sessions</span></span><span class="stat-value" id="repTotalSessions">0</span></div>
+                        <div class="stat-card poly-card bouncy-hover"><span class="stat-label">最爱项目 <span class="sub-en">Top Project</span></span><span class="stat-value" id="repFavProject">-</span></div>
+                    </div>
+                    
                     <div class="chart-panel poly-card bouncy-hover">
                         <div class="chart-header"><h3 class="card-title">📊 时间分布 <span class="sub-en">Time Distribution</span></h3><button class="btn-primary-poly small pop-anim" id="btnExportCSV">📥 导出 CSV <span class="sub-en" style="color:#fff;">Export CSV</span></button></div>
-                        <div class="vertical-chart-container" id="verticalChart"></div>
+                        <!-- CONTENEDOR PARA CHART.JS -->
+                        <div class="canvas-container" style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                            <canvas id="analyticsChart"></canvas>
+                        </div>
                     </div>
                 </section>
 
