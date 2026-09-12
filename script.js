@@ -21,6 +21,9 @@ let currentUser = null;
 let projects = [];
 let logs = [];
 let todos = []; 
+// Añadimos el perfil del usuario (con valores por defecto)
+let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '' };
+
 let activeTimer = JSON.parse(localStorage.getItem('fred_cloud_active')) || null;
 let timerInterval = null;
 let nextAlertSecs = 1800; // 30 minutos
@@ -99,6 +102,12 @@ document.getElementById('btnLogout').addEventListener('click', () => {
 // =========================================
 async function loadCloudData() {
     try {
+        // Cargar Perfil Personalizado
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if(userDoc.exists && userDoc.data().profile) {
+            userProfile = userDoc.data().profile;
+        }
+
         const pSnap = await db.collection('users').doc(currentUser.uid).collection('projects').get();
         projects = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         const lSnap = await db.collection('users').doc(currentUser.uid).collection('logs').orderBy('start', 'desc').get();
@@ -159,6 +168,7 @@ async function deleteTodoCloud(todoId) {
 // =========================================
 function initApp() {
     setupNavigation();
+    updateProfileUI(); // Actualizar UI con datos traídos de la nube
     updateProjectSelects();
     renderLogs();
     renderProjects();
@@ -226,6 +236,44 @@ function initApp() {
         document.getElementById('taskDesc').value = '';
         playCutePop();
     };
+
+    // --- LÓGICA DEL EDITOR DE PERFIL ---
+    document.getElementById('btnEditProfile').onclick = () => {
+        playCutePop();
+        document.getElementById('editProfileName').value = userProfile.name || '';
+        document.getElementById('editProfileTitle').value = userProfile.title || '';
+        document.getElementById('editProfilePic').value = userProfile.picUrl || '';
+        document.getElementById('profileEditModal').style.display = 'flex';
+    };
+
+    document.getElementById('btnCancelProfile').onclick = () => {
+        playCutePop();
+        document.getElementById('profileEditModal').style.display = 'none';
+    };
+
+    document.getElementById('btnSaveProfile').onclick = async () => {
+        playCutePop();
+        const btn = document.getElementById('btnSaveProfile');
+        btn.innerText = '保存中...'; // Guardando...
+
+        // Actualiza el objeto local
+        userProfile.name = document.getElementById('editProfileName').value.trim() || '弗雷德';
+        userProfile.title = document.getElementById('editProfileTitle').value.trim() || 'Fred Jitterbet ✨';
+        userProfile.picUrl = document.getElementById('editProfilePic').value.trim();
+
+        updateProfileUI(); // Refleja los cambios al instante
+        
+        // Guarda en Firestore
+        try {
+            await db.collection('users').doc(currentUser.uid).set({ profile: userProfile }, { merge: true });
+        } catch(e) {
+            console.error("Error guardando el perfil", e);
+        }
+        
+        btn.innerHTML = '保存 <span class="sub-en" style="color:#fff;">Save</span>';
+        document.getElementById('profileEditModal').style.display = 'none';
+    };
+    // -----------------------------------
 
     document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup(); };
 
@@ -334,7 +382,30 @@ function stopVisualTimer() {
 // 9. UI RENDERERS Y SISTEMA DE NIVELES PROGRESIVO
 // =========================================
 
-// Esta función calcula el nivel progresivo (Cada nivel cuesta un 20% más que el anterior)
+// Función que aplica los datos del usuario al DOM (Panel Lateral + Vista de Perfil)
+function updateProfileUI() {
+    document.getElementById('sidebarName').innerText = userProfile.name;
+    document.getElementById('sidebarTitle').innerText = userProfile.title;
+    
+    const mainName = document.getElementById('mainProfileName');
+    const mainTitle = document.getElementById('mainProfileTitle');
+    if (mainName) mainName.innerText = userProfile.name;
+    if (mainTitle) mainTitle.innerText = userProfile.title;
+
+    // Actualizamos ambas imágenes (Barra lateral y Vista Principal)
+    ['sidebarAvatarImg', 'mainAvatarImg'].forEach(id => {
+        const img = document.getElementById(id);
+        if (img) {
+            if (userProfile.picUrl) {
+                img.src = userProfile.picUrl;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none'; // Si no hay URL, se muestra el arte original Poly
+            }
+        }
+    });
+}
+
 function getLevelData(totalXP) {
     let level = 1;
     let xpRequired = 1000;
@@ -423,28 +494,24 @@ function updateDashboardStats() {
         document.getElementById('focusText').innerHTML = `${(tSecs/3600).toFixed(1)} 小时 / 4 小时目标 <span class="sub-en">hrs / 4 hrs goal</span>`;
     }
 
-    // Calcula XP Total (10 XP por minuto estudiado)
     const allTimeSecs = logs.reduce((acc, l) => acc + l.duration, 0);
     const totalXP = Math.floor(allTimeSecs / 60) * 10;
     
-    // Obtener los datos del nivel progresivo
     const levelData = getLevelData(totalXP);
     const progressPct = (levelData.currentLevelXP / levelData.xpRequired) * 100;
     
-    // Actualizar Panel Lateral
     document.getElementById('rpgLevel').innerText = levelData.level;
     document.getElementById('rpgXpText').innerText = `${levelData.currentLevelXP} / ${levelData.xpRequired} XP`;
     document.getElementById('rpgXpFill').style.width = `${progressPct}%`;
     
-    // Actualizar Nueva Vista de Perfil
     const elProfileLevel = document.getElementById('profileLevel');
     if(elProfileLevel) {
         elProfileLevel.innerText = `Lv. ${levelData.level}`;
         document.getElementById('profileXpText').innerText = `${levelData.currentLevelXP} / ${levelData.xpRequired} XP`;
         document.getElementById('profileXpFill').style.width = `${progressPct}%`;
         document.getElementById('profileTotalXP').innerText = totalXP;
-        document.getElementById('profileMed').innerText = `+${Math.floor(totalXP * 0.15)}`; // Simula Inteligencia Médica ganada
-        document.getElementById('profileWriting').innerText = `+${Math.floor(totalXP * 0.08)}`; // Simula Creatividad Literaria
+        document.getElementById('profileMed').innerText = `+${Math.floor(totalXP * 0.15)}`; 
+        document.getElementById('profileWriting').innerText = `+${Math.floor(totalXP * 0.08)}`; 
     }
 }
 
@@ -488,7 +555,7 @@ function launchConfetti() {
         const drop = document.createElement('div');
         drop.className = 'emoji-drop';
         drop.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-        drop.style.left = (Math.random() * 100) + '%'; // Ajustado para su nuevo contenedor
+        drop.style.left = (Math.random() * 100) + '%'; 
         drop.style.animationDuration = (Math.random() * 3 + 2) + 's'; 
         drop.style.animationDelay = (Math.random() * 0.5) + 's';
         overlay.appendChild(drop);

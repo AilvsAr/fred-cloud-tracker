@@ -31,15 +31,39 @@
         </div>
     </div>
 
-    <!-- POPUP 30 MINUTOS ARREGLADO -->
+    <!-- POPUP 30 MINUTOS -->
     <div id="milestonePopup" class="milestone-popup">
-        <!-- El confeti ahora vive AQUÍ ADENTRO, justo detrás de la tarjeta -->
         <div id="confettiOverlay" class="confetti-overlay"></div> 
-        
         <div class="milestone-content poly-card scale-in" style="z-index: 2; position: relative;">
             <img src="fredDance.gif" alt="Celebrate GIF">
             <h2 class="rainbow-text">30分钟过去了！<span class="sub-en">30 minutes have passed!</span></h2>
             <p>干得好！继续保持 ✨<span class="sub-en">Great job! Keep it up</span></p>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR PERFIL -->
+    <div id="profileEditModal" class="milestone-popup" style="display: none; z-index: 10006;">
+        <div class="poly-card scale-in" style="width: 90%; max-width: 400px; padding: 30px; position: relative;">
+            <h3 class="card-title">✏️ 编辑档案 <span class="sub-en">Edit Profile</span></h3>
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">名字 (Name)</label>
+                    <input type="text" id="editProfileName" class="input-cute" placeholder="弗雷德 (Fred)">
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">头衔 (Title/Description)</label>
+                    <input type="text" id="editProfileTitle" class="input-cute" placeholder="医学生 / 小说家">
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">头像链接 (Profile Picture URL)</label>
+                    <input type="text" id="editProfilePic" class="input-cute" placeholder="https://ejemplo.com/imagen.png">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; display: block;">* Déjalo vacío para usar el avatar por defecto 🐾</span>
+                </div>
+            </div>
+            <div class="manual-actions">
+                <button class="btn-primary-poly small" id="btnSaveProfile">保存 <span class="sub-en" style="color:#fff;">Save</span></button>
+                <button class="btn-text" id="btnCancelProfile">取消 <span class="sub-en">Cancel</span></button>
+            </div>
         </div>
     </div>
 
@@ -54,13 +78,14 @@
             <div class="sidebar-top">
                 <div class="user-profile">
                     <div class="avatar-frame">
+                        <img id="sidebarAvatarImg" class="avatar-custom-img" src="" style="display: none;">
                         <div class="avatar-poly avatar-ear-l"></div>
                         <div class="avatar-poly avatar-ear-r"></div>
                         <div class="avatar-poly avatar-face"></div>
                         <div class="avatar-poly avatar-snout">🐾</div>
                     </div>
-                    <h1 class="user-name">弗雷德</h1>
-                    <span class="user-title">Fred Jitterbet ✨</span>
+                    <h1 class="user-name" id="sidebarName">弗雷德</h1>
+                    <span class="user-title" id="sidebarTitle">Fred Jitterbet ✨</span>
                     
                     <div class="rpg-stats bouncy-hover">
                         <div class="level-badge">Lv. <span id="rpgLevel">1</span></div>
@@ -74,7 +99,6 @@
                         <span class="nav-icon">⏱️</span>
                         <div class="nav-text">时间追踪器 <span class="sub-en">Time Tracker</span></div>
                     </button>
-                    <!-- NUEVO BOTÓN DE PERFIL -->
                     <button class="nav-item" data-target="view-profile">
                         <span class="nav-icon">🛡️</span>
                         <div class="nav-text">我的档案 <span class="sub-en">My Profile</span></div>
@@ -183,18 +207,24 @@
                     <div class="logs-container" id="logListContainer"></div>
                 </section>
 
-                <!-- NUEVA VISTA 6: PERFIL RPG -->
+                <!-- VISTA 6: PERFIL RPG -->
                 <section id="view-profile" class="view-section">
                     <div class="poly-card bouncy-hover" style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
                         <div class="avatar-frame pulse-anim" style="width: 150px; height: 150px; flex-shrink: 0; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+                            <img id="mainAvatarImg" class="avatar-custom-img" src="" style="display: none;">
                             <div class="avatar-poly avatar-ear-l" style="width: 40px; height: 40px; top: 10px; left: 10px;"></div>
                             <div class="avatar-poly avatar-ear-r" style="width: 40px; height: 40px; top: 10px; right: 10px;"></div>
                             <div class="avatar-poly avatar-face" style="width: 100px; height: 80px;"></div>
                             <div class="avatar-poly avatar-snout" style="font-size: 3rem; margin-top: 15px;">🐾</div>
                         </div>
                         <div class="profile-info" style="flex: 1; min-width: 250px;">
-                            <h2 style="font-size: 2.2rem; margin-bottom: 5px;" class="rainbow-text">弗雷德 (Fred Jitterbet)</h2>
-                            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 20px; font-weight: 700;">医学生 / 小说家 <span class="sub-en">Medical Student / Novelist</span></p>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h2 style="font-size: 2.2rem; margin-bottom: 5px;" class="rainbow-text" id="mainProfileName">弗雷德</h2>
+                                    <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 20px; font-weight: 700;" id="mainProfileTitle">Fred Jitterbet ✨</p>
+                                </div>
+                                <button id="btnEditProfile" class="btn-primary-poly small pop-anim" style="background: var(--secondary-color); margin-top: 5px;">✏️ 编辑档案</button>
+                            </div>
                             
                             <div class="rpg-stats-large" style="background: var(--input-bg); padding: 20px; border-radius: 18px; border: 2px solid transparent; transition: 0.3s;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: flex-end;">
