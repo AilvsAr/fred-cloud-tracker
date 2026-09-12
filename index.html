@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fred's Cloud Tracker 🐾</title>
     <link rel="icon" href="fredIcon.png" type="image/jpeg">
-    <!-- El ?v=Fred1 obliga a tu navegador a descargar los colores nuevos -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
@@ -32,9 +31,12 @@
         </div>
     </div>
 
-    <!-- POPUP 30 MINUTOS -->
+    <!-- POPUP 30 MINUTOS ARREGLADO -->
     <div id="milestonePopup" class="milestone-popup">
-        <div class="milestone-content poly-card scale-in">
+        <!-- El confeti ahora vive AQUÍ ADENTRO, justo detrás de la tarjeta -->
+        <div id="confettiOverlay" class="confetti-overlay"></div> 
+        
+        <div class="milestone-content poly-card scale-in" style="z-index: 2; position: relative;">
             <img src="fredDance.gif" alt="Celebrate GIF">
             <h2 class="rainbow-text">30分钟过去了！<span class="sub-en">30 minutes have passed!</span></h2>
             <p>干得好！继续保持 ✨<span class="sub-en">Great job! Keep it up</span></p>
@@ -47,7 +49,7 @@
 
     <div class="app-container slide-in-bottom">
         
-        <!-- BARRA LATERAL OPTIMIZADA PARA PANTALLAS COMPACTAS -->
+        <!-- BARRA LATERAL -->
         <aside class="sidebar">
             <div class="sidebar-top">
                 <div class="user-profile">
@@ -72,6 +74,11 @@
                         <span class="nav-icon">⏱️</span>
                         <div class="nav-text">时间追踪器 <span class="sub-en">Time Tracker</span></div>
                     </button>
+                    <!-- NUEVO BOTÓN DE PERFIL -->
+                    <button class="nav-item" data-target="view-profile">
+                        <span class="nav-icon">🛡️</span>
+                        <div class="nav-text">我的档案 <span class="sub-en">My Profile</span></div>
+                    </button>
                     <button class="nav-item" data-target="view-todos">
                         <span class="nav-icon">📝</span>
                         <div class="nav-text">待办事项 <span class="sub-en">Task List</span></div>
@@ -91,7 +98,6 @@
                 </nav>
             </div>
 
-            <!-- LOGOUT AHORA ESTÁ AQUÍ PARA QUE NO SE CORTE -->
             <div class="sidebar-bottom">
                 <div class="theme-switcher">
                     <button class="theme-btn" data-theme="pastel" title="Pastel Cloud">🌸</button>
@@ -100,7 +106,6 @@
                     <button id="btnLogout" class="btn-text danger pop-anim" style="margin-left: 5px; padding: 5px 12px; border-radius: 12px;" title="Cerrar Sesión">🚪 出去</button>
                 </div>
 
-                <!-- NUEVO: INTERRUPTOR DE ENERGÍA NEÓN -->
                 <div class="neon-toggle-container">
                     <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">⚡ 霓虹灯流 <span class="sub-en" style="display:inline;">Neon Flow</span></span>
                     <label class="switch">
@@ -137,7 +142,7 @@
             </header>
 
             <div class="views-container">
-                <!-- VISTA 1: TEMPORIZADOR (Aquí está el botón 🎁) -->
+                <!-- VISTA 1: TEMPORIZADOR -->
                 <section id="view-timer" class="view-section active">
                     <div class="tracker-dashboard">
                         <div class="tracker-main poly-card bouncy-hover">
@@ -154,7 +159,6 @@
                             
                             <div class="action-row-bottom">
                                 <button id="btnOpenManual" class="btn-text">忘记记录了？手动添加 ✍️ <span class="sub-en">Forgot? Add manual</span></button>
-                                <!-- BOTÓN DE PRUEBA -->
                                 <button id="btnTestPopup" class="btn-text highlight-text pop-anim">测试动画 🎁 <span class="sub-en">Test Popup</span></button>
                             </div>
                         </div>
@@ -177,6 +181,48 @@
                     </div>
                     <div class="logs-header-area"><h3 class="section-subtitle">最近的冒险 🗺️ <span class="sub-en">Recent Adventures</span></h3></div>
                     <div class="logs-container" id="logListContainer"></div>
+                </section>
+
+                <!-- NUEVA VISTA 6: PERFIL RPG -->
+                <section id="view-profile" class="view-section">
+                    <div class="poly-card bouncy-hover" style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
+                        <div class="avatar-frame pulse-anim" style="width: 150px; height: 150px; flex-shrink: 0; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+                            <div class="avatar-poly avatar-ear-l" style="width: 40px; height: 40px; top: 10px; left: 10px;"></div>
+                            <div class="avatar-poly avatar-ear-r" style="width: 40px; height: 40px; top: 10px; right: 10px;"></div>
+                            <div class="avatar-poly avatar-face" style="width: 100px; height: 80px;"></div>
+                            <div class="avatar-poly avatar-snout" style="font-size: 3rem; margin-top: 15px;">🐾</div>
+                        </div>
+                        <div class="profile-info" style="flex: 1; min-width: 250px;">
+                            <h2 style="font-size: 2.2rem; margin-bottom: 5px;" class="rainbow-text">弗雷德 (Fred Jitterbet)</h2>
+                            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 20px; font-weight: 700;">医学生 / 小说家 <span class="sub-en">Medical Student / Novelist</span></p>
+                            
+                            <div class="rpg-stats-large" style="background: var(--input-bg); padding: 20px; border-radius: 18px; border: 2px solid transparent; transition: 0.3s;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: flex-end;">
+                                    <span style="font-size: 1.2rem; font-weight: 800; color: var(--text-dark);">当前等级 <span class="sub-en" style="display:inline">Level</span></span>
+                                    <span style="font-size: 2rem; font-weight: 900; color: var(--primary-color); line-height: 1;" id="profileLevel">Lv. 1</span>
+                                </div>
+                                <div class="xp-bar-container" style="height: 18px; margin-bottom: 12px; background: rgba(0,0,0,0.1);"><div class="xp-fill glow-anim" id="profileXpFill"></div></div>
+                                <div style="text-align: right; font-weight: 800; color: var(--text-muted); font-size: 1rem;" id="profileXpText">0 / 1000 XP</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="section-subtitle" style="margin: 35px 0 20px;">角色属性 ⚔️ <span class="sub-en">Character Attributes</span></h3>
+                    <div class="stats-grid">
+                        <div class="stat-card poly-card bouncy-hover">
+                            <span class="stat-label">总专注力 <span class="sub-en">Total Focus Power</span></span>
+                            <span class="stat-value" id="profileTotalXP">0</span>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">XP</span>
+                        </div>
+                        <div class="stat-card poly-card bouncy-hover">
+                            <span class="stat-label">医学力量 <span class="sub-en">Med Power</span></span>
+                            <span class="stat-value" id="profileMed" style="color: #48dbfb;">0</span>
+                        </div>
+                        <div class="stat-card poly-card bouncy-hover">
+                            <span class="stat-label">文学创造力 <span class="sub-en">Writing Creativity</span></span>
+                            <span class="stat-value" id="profileWriting" style="color: #ff9ff3;">0</span>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- VISTA 2: LISTA DE TAREAS -->
@@ -227,7 +273,11 @@
                             <div class="sound-card bouncy-hover"><div class="sound-icon pulse-anim">🌧️</div><h4>雨声 <span class="sub-en">Heavy Rain</span></h4><button class="btn-sound pop-anim" id="btnRain">播放 Play</button></div>
                             <div class="sound-card bouncy-hover"><div class="sound-icon pulse-anim">🌊</div><h4>海浪 <span class="sub-en">Ocean Waves</span></h4><button class="btn-sound pop-anim" id="btnWaves">播放 Play</button></div>
                             <div class="sound-card bouncy-hover"><div class="sound-icon pulse-anim">📻</div><h4>棕色噪音 <span class="sub-en">Brown Noise</span></h4><button class="btn-sound pop-anim" id="btnBrown">播放 Play</button></div>
-                            <div class="sound-card bouncy-hover" style="grid-column: 1 / -1; background: var(--primary-color);"><div class="sound-icon" style="color: #fff; animation: none;">🛑</div><h4 style="color: #fff;">停止所有声音 <span class="sub-en" style="color: rgba(255,255,255,0.8);">Stop all sounds</span></h4><button class="btn-sound pop-anim" id="btnStopSounds" style="background: #fff; color: var(--text-dark); box-shadow: 0 5px 15px rgba(0,0,0,0.2);">停止 Stop</button></div>
+                            <div class="sound-card bouncy-hover" style="grid-column: 1 / -1; background: var(--primary-color);">
+                                <div class="sound-icon" style="color: #fff; animation: none;">🛑</div>
+                                <h4 style="color: #fff;">停止所有声音 <span class="sub-en" style="color: rgba(255,255,255,0.8);">Stop all sounds</span></h4>
+                                <button class="btn-sound pop-anim" id="btnStopSounds" style="background: #ffffff !important; color: #1a1a1a !important; font-weight: 900; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">停止 Stop</button>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -236,7 +286,6 @@
         </main>
     </div>
 
-    <div id="confettiOverlay" class="confetti-overlay"></div>
     <script src="script.js"></script>
 </body>
 </html>
