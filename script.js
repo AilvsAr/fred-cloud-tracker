@@ -21,8 +21,8 @@ let currentUser = null;
 let projects = [];
 let logs = [];
 let todos = []; 
-// Añadimos el perfil del usuario (con valores por defecto)
 let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '' };
+let tempProfilePicBase64 = ''; // Variable para almacenar la imagen temporalmente
 
 let activeTimer = JSON.parse(localStorage.getItem('fred_cloud_active')) || null;
 let timerInterval = null;
@@ -102,7 +102,6 @@ document.getElementById('btnLogout').addEventListener('click', () => {
 // =========================================
 async function loadCloudData() {
     try {
-        // Cargar Perfil Personalizado
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         if(userDoc.exists && userDoc.data().profile) {
             userProfile = userDoc.data().profile;
@@ -168,7 +167,7 @@ async function deleteTodoCloud(todoId) {
 // =========================================
 function initApp() {
     setupNavigation();
-    updateProfileUI(); // Actualizar UI con datos traídos de la nube
+    updateProfileUI(); 
     updateProjectSelects();
     renderLogs();
     renderProjects();
@@ -237,13 +236,51 @@ function initApp() {
         playCutePop();
     };
 
-    // --- LÓGICA DEL EDITOR DE PERFIL ---
+    // --- LÓGICA DEL EDITOR DE PERFIL (CON SUBIDA DE ARCHIVOS) ---
     document.getElementById('btnEditProfile').onclick = () => {
         playCutePop();
         document.getElementById('editProfileName').value = userProfile.name || '';
         document.getElementById('editProfileTitle').value = userProfile.title || '';
-        document.getElementById('editProfilePic').value = userProfile.picUrl || '';
+        
+        tempProfilePicBase64 = userProfile.picUrl || ''; 
+        const preview = document.getElementById('fileUploadPreview');
+        if (tempProfilePicBase64) {
+            preview.innerText = '✅ 已加载当前图片 (Current image loaded)';
+        } else {
+            preview.innerText = '';
+        }
+        
         document.getElementById('profileEditModal').style.display = 'flex';
+    };
+
+    document.getElementById('btnTriggerFileUpload').onclick = () => {
+        document.getElementById('editProfilePicFile').click();
+    };
+
+    // MAGIA DE FILE READER (Convierte imagen local a texto para guardar en nube)
+    document.getElementById('editProfilePicFile').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Límite de 1MB para proteger tu base de datos de Firebase
+            if(file.size > 1048576) {
+                alert("图片太大！请选择小于 1MB 的图片。\n(¡La imagen es muy grande! Por favor elige una de menos de 1MB).");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                tempProfilePicBase64 = e.target.result; // El resultado es un string Base64
+                document.getElementById('fileUploadPreview').innerText = '✅ 图片就绪 (¡Imagen lista!)';
+                playCutePop();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('btnRemoveProfilePic').onclick = () => {
+        playCutePop();
+        tempProfilePicBase64 = '';
+        document.getElementById('fileUploadPreview').innerText = '🐾 已恢复默认头像 (Avatar por defecto activado)';
+        document.getElementById('editProfilePicFile').value = ''; // Limpiar el input
     };
 
     document.getElementById('btnCancelProfile').onclick = () => {
@@ -254,16 +291,14 @@ function initApp() {
     document.getElementById('btnSaveProfile').onclick = async () => {
         playCutePop();
         const btn = document.getElementById('btnSaveProfile');
-        btn.innerText = '保存中...'; // Guardando...
+        btn.innerText = '保存中...'; 
 
-        // Actualiza el objeto local
         userProfile.name = document.getElementById('editProfileName').value.trim() || '弗雷德';
         userProfile.title = document.getElementById('editProfileTitle').value.trim() || 'Fred Jitterbet ✨';
-        userProfile.picUrl = document.getElementById('editProfilePic').value.trim();
+        userProfile.picUrl = tempProfilePicBase64; 
 
-        updateProfileUI(); // Refleja los cambios al instante
+        updateProfileUI(); 
         
-        // Guarda en Firestore
         try {
             await db.collection('users').doc(currentUser.uid).set({ profile: userProfile }, { merge: true });
         } catch(e) {
@@ -382,7 +417,6 @@ function stopVisualTimer() {
 // 9. UI RENDERERS Y SISTEMA DE NIVELES PROGRESIVO
 // =========================================
 
-// Función que aplica los datos del usuario al DOM (Panel Lateral + Vista de Perfil)
 function updateProfileUI() {
     document.getElementById('sidebarName').innerText = userProfile.name;
     document.getElementById('sidebarTitle').innerText = userProfile.title;
@@ -392,7 +426,6 @@ function updateProfileUI() {
     if (mainName) mainName.innerText = userProfile.name;
     if (mainTitle) mainTitle.innerText = userProfile.title;
 
-    // Actualizamos ambas imágenes (Barra lateral y Vista Principal)
     ['sidebarAvatarImg', 'mainAvatarImg'].forEach(id => {
         const img = document.getElementById(id);
         if (img) {
@@ -400,7 +433,7 @@ function updateProfileUI() {
                 img.src = userProfile.picUrl;
                 img.style.display = 'block';
             } else {
-                img.style.display = 'none'; // Si no hay URL, se muestra el arte original Poly
+                img.style.display = 'none'; 
             }
         }
     });

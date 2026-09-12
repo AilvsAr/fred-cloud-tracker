@@ -41,7 +41,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDITAR PERFIL -->
+    <!-- MODAL EDITAR PERFIL ACTUALIZADO PARA SUBIR ARCHIVOS LOCALES -->
     <div id="profileEditModal" class="milestone-popup" style="display: none; z-index: 10006;">
         <div class="poly-card scale-in" style="width: 90%; max-width: 400px; padding: 30px; position: relative;">
             <h3 class="card-title">✏️ 编辑档案 <span class="sub-en">Edit Profile</span></h3>
@@ -55,9 +55,22 @@
                     <input type="text" id="editProfileTitle" class="input-cute" placeholder="医学生 / 小说家">
                 </div>
                 <div>
-                    <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">头像链接 (Profile Picture URL)</label>
-                    <input type="text" id="editProfilePic" class="input-cute" placeholder="https://ejemplo.com/imagen.png">
-                    <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; display: block;">* Déjalo vacío para usar el avatar por defecto 🐾</span>
+                    <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">上传头像 (Upload Profile Pic)</label>
+                    
+                    <!-- Input de archivo oculto -->
+                    <input type="file" id="editProfilePicFile" accept="image/*" style="display: none;">
+                    
+                    <!-- Botón bonito que activa el input -->
+                    <button type="button" class="btn-primary-poly small pop-anim" id="btnTriggerFileUpload" style="width: 100%; background: var(--input-bg); color: var(--text-dark); border: 2px dashed var(--secondary-color); box-shadow: none;">
+                        📂 从设备选择图片 (Choose from device)
+                    </button>
+                    
+                    <div id="fileUploadPreview" style="margin-top: 10px; font-size: 0.8rem; color: var(--primary-color); text-align: center; font-weight: bold;"></div>
+                    
+                    <!-- Botón para quitar foto y volver al Avatar Poly -->
+                    <button type="button" class="btn-text" id="btnRemoveProfilePic" style="width: 100%; text-align: center; margin-top: 5px; font-size: 0.8rem;">
+                        🗑️ 移除照片 (Use default avatar)
+                    </button>
                 </div>
             </div>
             <div class="manual-actions">
