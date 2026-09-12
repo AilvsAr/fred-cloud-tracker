@@ -38,10 +38,8 @@ function playCutePop() {
     osc.start(); osc.stop(audioCtx.currentTime + 0.1);
 }
 
-// NUEVA MAGIA: Sonido de "Level Up" mágico para los 30 minutos
 function playCelebrationSound() {
     if(audioCtx.state === 'suspended') audioCtx.resume();
-    // Un arpegio energético tipo RPG
     const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98]; // C5, E5, G5, C6, E6, G6
     notes.forEach((freq, i) => {
         const osc = audioCtx.createOscillator();
@@ -173,28 +171,14 @@ function initApp() {
         btn.onclick = () => { playCutePop(); applyTheme(btn.dataset.theme); }
     });
 
-// --- LÓGICA DEL NEON FLOW ---
     const neonToggle = document.getElementById('neonFlowToggle');
     const savedNeon = localStorage.getItem('fred_neon_flow') === 'true';
-    
-    // Aplicar estado guardado
-    if (savedNeon) {
-        document.body.classList.add('neon-flow-active');
-        neonToggle.checked = true;
-    }
-
-    // Escuchar cambios en el interruptor
+    if (savedNeon) { document.body.classList.add('neon-flow-active'); neonToggle.checked = true; }
     neonToggle.addEventListener('change', (e) => {
         playCutePop();
-        if (e.target.checked) {
-            document.body.classList.add('neon-flow-active');
-            localStorage.setItem('fred_neon_flow', 'true');
-        } else {
-            document.body.classList.remove('neon-flow-active');
-            localStorage.setItem('fred_neon_flow', 'false');
-        }
+        if (e.target.checked) { document.body.classList.add('neon-flow-active'); localStorage.setItem('fred_neon_flow', 'true'); } 
+        else { document.body.classList.remove('neon-flow-active'); localStorage.setItem('fred_neon_flow', 'false'); }
     });
-    // ----------------------------
 
     const btnToggle = document.getElementById('btnToggle');
     const newBtnToggle = btnToggle.cloneNode(true);
@@ -243,10 +227,7 @@ function initApp() {
         playCutePop();
     };
 
-    // BOTÓN DE PRUEBA DE ANIMACIÓN MEJORADO
-    document.getElementById('btnTestPopup').onclick = () => {
-        showMilestonePopup();
-    };
+    document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup(); };
 
     document.onkeydown = (e) => { 
         if (e.ctrlKey && e.code === 'Space') { e.preventDefault(); toggleTimer(); } 
@@ -331,17 +312,11 @@ function startVisualTimer() {
     }, 1000);
 }
 
-// LA NUEVA FUNCIÓN DEL POPUP CON SONIDO MÁGICO
 function showMilestonePopup() {
     const popup = document.getElementById('milestonePopup');
     popup.style.display = 'flex';
-    
-    // Sonido súper genial RPG
     playCelebrationSound(); 
-    
-    // Lluvia de emojis épica
     launchConfetti(); 
-
     setTimeout(() => { popup.style.display = 'none'; }, 5000);
 }
 
@@ -356,8 +331,23 @@ function stopVisualTimer() {
 }
 
 // =========================================
-// 9. UI RENDERERS
+// 9. UI RENDERERS Y SISTEMA DE NIVELES PROGRESIVO
 // =========================================
+
+// Esta función calcula el nivel progresivo (Cada nivel cuesta un 20% más que el anterior)
+function getLevelData(totalXP) {
+    let level = 1;
+    let xpRequired = 1000;
+    let currentLevelXP = totalXP;
+
+    while (currentLevelXP >= xpRequired) {
+        currentLevelXP -= xpRequired;
+        level++;
+        xpRequired = Math.floor(xpRequired * 1.2); 
+    }
+    return { level, currentLevelXP, xpRequired };
+}
+
 function updateProjectSelects() {
     const select = document.getElementById('taskProject');
     select.innerHTML = '<option value="">无项目 (No Project) ☁️</option>';
@@ -433,16 +423,29 @@ function updateDashboardStats() {
         document.getElementById('focusText').innerHTML = `${(tSecs/3600).toFixed(1)} 小时 / 4 小时目标 <span class="sub-en">hrs / 4 hrs goal</span>`;
     }
 
+    // Calcula XP Total (10 XP por minuto estudiado)
     const allTimeSecs = logs.reduce((acc, l) => acc + l.duration, 0);
     const totalXP = Math.floor(allTimeSecs / 60) * 10;
-    const xpPerLevel = 1000;
     
-    const currentLevel = Math.floor(totalXP / xpPerLevel) + 1;
-    const currentXP = totalXP % xpPerLevel;
+    // Obtener los datos del nivel progresivo
+    const levelData = getLevelData(totalXP);
+    const progressPct = (levelData.currentLevelXP / levelData.xpRequired) * 100;
     
-    document.getElementById('rpgLevel').innerText = currentLevel;
-    document.getElementById('rpgXpText').innerText = `${currentXP} / ${xpPerLevel} XP`;
-    document.getElementById('rpgXpFill').style.width = `${(currentXP / xpPerLevel) * 100}%`;
+    // Actualizar Panel Lateral
+    document.getElementById('rpgLevel').innerText = levelData.level;
+    document.getElementById('rpgXpText').innerText = `${levelData.currentLevelXP} / ${levelData.xpRequired} XP`;
+    document.getElementById('rpgXpFill').style.width = `${progressPct}%`;
+    
+    // Actualizar Nueva Vista de Perfil
+    const elProfileLevel = document.getElementById('profileLevel');
+    if(elProfileLevel) {
+        elProfileLevel.innerText = `Lv. ${levelData.level}`;
+        document.getElementById('profileXpText').innerText = `${levelData.currentLevelXP} / ${levelData.xpRequired} XP`;
+        document.getElementById('profileXpFill').style.width = `${progressPct}%`;
+        document.getElementById('profileTotalXP').innerText = totalXP;
+        document.getElementById('profileMed').innerText = `+${Math.floor(totalXP * 0.15)}`; // Simula Inteligencia Médica ganada
+        document.getElementById('profileWriting').innerText = `+${Math.floor(totalXP * 0.08)}`; // Simula Creatividad Literaria
+    }
 }
 
 function renderVerticalChart() {
@@ -478,15 +481,14 @@ function renderVerticalChart() {
     });
 }
 
-// LA NUEVA LLUVIA ÉPICA DE EMOJIS (¡Incluye más emojis cool y un mejor timing!)
 function launchConfetti() {
     const overlay = document.getElementById('confettiOverlay');
-    const emojis = ['🎉', '✨', '🐾', '🔥', '🌸', '🏆', '💊', '⚕️']; 
+    const emojis = ['🎉', '✨', '🐾', '🔥', '🌸', '🏆', '⚕️', '💉', '📖', '🍵']; 
     for(let i=0; i<60; i++) {
         const drop = document.createElement('div');
         drop.className = 'emoji-drop';
         drop.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-        drop.style.left = (Math.random() * 100) + 'vw';
+        drop.style.left = (Math.random() * 100) + '%'; // Ajustado para su nuevo contenedor
         drop.style.animationDuration = (Math.random() * 3 + 2) + 's'; 
         drop.style.animationDelay = (Math.random() * 0.5) + 's';
         overlay.appendChild(drop);
