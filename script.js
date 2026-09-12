@@ -21,17 +21,27 @@ let currentUser = null;
 let projects = [];
 let logs = [];
 let todos = []; 
-let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '' };
+let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '', diamonds: 0, inventory: [] };
 let tempProfilePicBase64 = ''; 
+
+let currentKnownLevel = 0; // Para rastrear subidas de nivel en la sesión
 
 let activeTimer = JSON.parse(localStorage.getItem('fred_cloud_active')) || null;
 let timerInterval = null;
 let nextAlertSecs = 1800; // 30 minutos
 
-// Chart.js Globals
 let analyticsChartInstance = null;
 let currentChartType = 'bar';
 let currentTimeFilter = 'weekly';
+
+// =========================================
+// CATALOGO DE LA TIENDA
+// =========================================
+const shopItems = [
+    { id: 'effect_dark_fantasy', name: '暗黑幻想光标', desc: 'Dark Fantasy Cursor', price: 15, icon: '⚔️', classStr: 'effect-dark-fantasy' },
+    { id: 'effect_cyberpunk', name: '赛博朋克边框', desc: 'Cyberpunk Inner Glow', price: 25, icon: '🌃', classStr: 'effect-cyberpunk' },
+    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Background', price: 50, icon: '🐾', classStr: 'effect-leopard-paws' }
+];
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playCutePop() {
@@ -71,10 +81,7 @@ function applyTheme(themeName) {
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === themeName);
     });
-    // Si la gráfica está viva, la repintamos para actualizar los colores de las letras
-    if (analyticsChartInstance) {
-        renderAnalytics();
-    }
+    if (analyticsChartInstance) renderAnalytics();
 }
 
 // =========================================
@@ -113,8 +120,10 @@ async function loadCloudData() {
     try {
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         if(userDoc.exists && userDoc.data().profile) {
-            userProfile = userDoc.data().profile;
+            userProfile = { ...userProfile, ...userDoc.data().profile };
         }
+        if(!userProfile.inventory) userProfile.inventory = [];
+        if(!userProfile.diamonds) userProfile.diamonds = 0;
 
         const pSnap = await db.collection('users').doc(currentUser.uid).collection('projects').get();
         projects = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -174,18 +183,32 @@ async function deleteTodoCloud(todoId) {
     renderTodos();
 }
 
+async function syncProfile() {
+    try {
+        await db.collection('users').doc(currentUser.uid).set({ profile: userProfile }, { merge: true });
+    } catch(e) { console.error("Error guardando el perfil", e); }
+}
+
 // =========================================
 // 6. INITIALIZATION & EVENTS
 // =========================================
 function initApp() {
     setupNavigation();
     updateProfileUI(); 
-    initAnalytics(); // Inicializar filtros de Chart.js
+    initAnalytics(); 
     updateProjectSelects();
     renderLogs();
     renderProjects();
     renderTodos();
+    
+    // Inicializar Nivel Base sin disparar alarma
+    const allTimeSecs = logs.reduce((acc, l) => acc + l.duration, 0);
+    const initTotalXP = Math.floor(allTimeSecs / 60) * 10;
+    currentKnownLevel = getLevelData(initTotalXP).level;
+    
     updateDashboardStats();
+    renderShop();
+    applyPurchasedEffects();
 
     const savedTheme = localStorage.getItem('fred_theme') || 'pastel';
     applyTheme(savedTheme);
@@ -249,34 +272,24 @@ function initApp() {
         playCutePop();
     };
 
-    // LÓGICA DEL EDITOR DE PERFIL (CON SUBIDA DE ARCHIVOS)
+    // LÓGICA DEL EDITOR DE PERFIL
     document.getElementById('btnEditProfile').onclick = () => {
         playCutePop();
         document.getElementById('editProfileName').value = userProfile.name || '';
         document.getElementById('editProfileTitle').value = userProfile.title || '';
-        
         tempProfilePicBase64 = userProfile.picUrl || ''; 
         const preview = document.getElementById('fileUploadPreview');
-        if (tempProfilePicBase64) {
-            preview.innerText = '✅ 已加载当前图片 (Current image loaded)';
-        } else {
-            preview.innerText = '';
-        }
-        
+        if (tempProfilePicBase64) preview.innerText = '✅ 已加载当前图片 (Current image loaded)';
+        else preview.innerText = '';
         document.getElementById('profileEditModal').style.display = 'flex';
     };
 
-    document.getElementById('btnTriggerFileUpload').onclick = () => {
-        document.getElementById('editProfilePicFile').click();
-    };
+    document.getElementById('btnTriggerFileUpload').onclick = () => { document.getElementById('editProfilePicFile').click(); };
 
     document.getElementById('editProfilePicFile').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
-            if(file.size > 1048576) {
-                alert("图片太大！请选择小于 1MB 的图片。\n(¡La imagen es muy grande! Por favor elige una de menos de 1MB).");
-                return;
-            }
+            if(file.size > 1048576) { alert("图片太大！请选择小于 1MB 的图片。"); return; }
             const reader = new FileReader();
             reader.onload = function(e) {
                 tempProfilePicBase64 = e.target.result; 
@@ -309,18 +322,13 @@ function initApp() {
         userProfile.picUrl = tempProfilePicBase64; 
 
         updateProfileUI(); 
-        
-        try {
-            await db.collection('users').doc(currentUser.uid).set({ profile: userProfile }, { merge: true });
-        } catch(e) {
-            console.error("Error guardando el perfil", e);
-        }
+        await syncProfile();
         
         btn.innerHTML = '保存 <span class="sub-en" style="color:#fff;">Save</span>';
         document.getElementById('profileEditModal').style.display = 'none';
     };
 
-    document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup(); };
+    document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup("测试", "这是一条测试消息 ✨"); };
 
     document.onkeydown = (e) => { 
         if (e.ctrlKey && e.code === 'Space') { e.preventDefault(); toggleTimer(); } 
@@ -357,6 +365,7 @@ function setupNavigation() {
             document.getElementById(targetId).classList.add('active');
             
             if(targetId === 'view-reports') renderAnalytics();
+            if(targetId === 'view-shop') renderShop();
         };
     });
 }
@@ -379,7 +388,7 @@ function toggleTimer() {
         
         if (duration > 3) { 
             saveLogToCloud(activeTimer.desc, activeTimer.projectId, activeTimer.tags, activeTimer.start, end, duration);
-            if(duration > 1800) launchConfetti(); 
+            if(duration > 1800) showMilestonePopup("30分钟过去了！", "干得好！继续保持 ✨");
         }
         stopVisualTimer();
     }
@@ -399,13 +408,15 @@ function startVisualTimer() {
         document.getElementById('liveTimer').innerText = formatTime(elapsed);
 
         if (elapsed >= nextAlertSecs) {
-            showMilestonePopup();
+            showMilestonePopup("30分钟过去了！", "干得好！继续保持 ✨");
             nextAlertSecs += 1800; 
         }
     }, 1000);
 }
 
-function showMilestonePopup() {
+function showMilestonePopup(title, message) {
+    document.getElementById('popupTitle').innerText = title;
+    document.getElementById('popupMessage').innerText = message;
     const popup = document.getElementById('milestonePopup');
     popup.style.display = 'flex';
     playCelebrationSound(); 
@@ -430,6 +441,7 @@ function stopVisualTimer() {
 function updateProfileUI() {
     document.getElementById('sidebarName').innerText = userProfile.name;
     document.getElementById('sidebarTitle').innerText = userProfile.title;
+    document.getElementById('topDiamondCount').innerText = userProfile.diamonds || 0;
     
     const mainName = document.getElementById('mainProfileName');
     const mainTitle = document.getElementById('mainProfileTitle');
@@ -439,12 +451,8 @@ function updateProfileUI() {
     ['sidebarAvatarImg', 'mainAvatarImg'].forEach(id => {
         const img = document.getElementById(id);
         if (img) {
-            if (userProfile.picUrl) {
-                img.src = userProfile.picUrl;
-                img.style.display = 'block';
-            } else {
-                img.style.display = 'none'; 
-            }
+            if (userProfile.picUrl) { img.src = userProfile.picUrl; img.style.display = 'block'; } 
+            else { img.style.display = 'none'; }
         }
     });
 }
@@ -543,6 +551,19 @@ function updateDashboardStats() {
     const levelData = getLevelData(totalXP);
     const progressPct = (levelData.currentLevelXP / levelData.xpRequired) * 100;
     
+    // LÓGICA DE ECONOMÍA POR LEVEL UP
+    if (currentKnownLevel > 0 && levelData.level > currentKnownLevel) {
+        const levelsGained = levelData.level - currentKnownLevel;
+        const diamondsEarned = levelsGained * 10; // 10 Diamantes por Nivel
+        userProfile.diamonds = (userProfile.diamonds || 0) + diamondsEarned;
+        syncProfile();
+        updateProfileUI();
+        showMilestonePopup("🎉 升级了！Level Up!", `你获得了 ${diamondsEarned} 💎 钻石!`);
+        currentKnownLevel = levelData.level;
+    } else {
+        currentKnownLevel = levelData.level; // En caso de que se hayan borrado logs y baje
+    }
+
     document.getElementById('rpgLevel').innerText = levelData.level;
     document.getElementById('rpgXpText').innerText = `${levelData.currentLevelXP} / ${levelData.xpRequired} XP`;
     document.getElementById('rpgXpFill').style.width = `${progressPct}%`;
@@ -559,7 +580,65 @@ function updateDashboardStats() {
 }
 
 // =========================================
-// 10. CHART.JS ANALYTICS ENGINE
+// 10. SHOP ENGINE (TIENDA Y EFECTOS)
+// =========================================
+function renderShop() {
+    const grid = document.getElementById('shopGrid');
+    grid.innerHTML = '';
+    
+    shopItems.forEach(item => {
+        const isOwned = userProfile.inventory && userProfile.inventory.includes(item.id);
+        const canAfford = (userProfile.diamonds || 0) >= item.price;
+        
+        let btnHTML = '';
+        if (isOwned) {
+            btnHTML = `<button class="btn-buy disabled">已拥有 Owned</button>`;
+        } else {
+            btnHTML = `<button class="btn-buy ${!canAfford ? 'disabled' : ''}" onclick="buyItem('${item.id}', ${item.price})">购买 Buy</button>`;
+        }
+
+        grid.innerHTML += `
+            <div class="shop-card ${isOwned ? 'owned' : ''}">
+                <span class="shop-icon">${item.icon}</span>
+                <h3 style="margin-bottom: 5px; color: var(--text-dark);">${item.name}</h3>
+                <p style="font-size: 0.8rem; color: var(--text-muted); height: 30px;">${item.desc}</p>
+                <div class="shop-price">💎 ${item.price}</div>
+                ${btnHTML}
+            </div>
+        `;
+    });
+}
+
+async function buyItem(itemId, price) {
+    if (userProfile.diamonds < price) {
+        alert("钻石不足！请多学习升级以获取钻石 💎\n(¡No tienes suficientes diamantes! Estudia y sube de nivel para ganar más).");
+        return;
+    }
+    
+    playCelebrationSound();
+    userProfile.diamonds -= price;
+    if(!userProfile.inventory) userProfile.inventory = [];
+    userProfile.inventory.push(itemId);
+    
+    updateProfileUI();
+    renderShop();
+    applyPurchasedEffects();
+    await syncProfile();
+    
+    showMilestonePopup("购买成功！", "Purchased Successfully ✨");
+}
+
+function applyPurchasedEffects() {
+    if(!userProfile.inventory) return;
+    shopItems.forEach(item => {
+        if (userProfile.inventory.includes(item.id)) {
+            document.body.classList.add(item.classStr);
+        }
+    });
+}
+
+// =========================================
+// 11. CHART.JS ANALYTICS ENGINE
 // =========================================
 
 function initAnalytics() {
@@ -587,14 +666,11 @@ function initAnalytics() {
 function renderAnalytics() {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    
-    // Configuración para el inicio de la semana (Lunes como primer día)
     const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; 
     const startOfWeek = startOfToday - (dayOfWeek * 86400000);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const startOfYear = new Date(now.getFullYear(), 0, 1).getTime();
 
-    // Filtrar los logs
     let filteredLogs = logs.filter(l => {
         if(currentTimeFilter === 'all') return true;
         if(currentTimeFilter === 'daily') return l.start >= startOfToday;
@@ -604,7 +680,6 @@ function renderAnalytics() {
         return true;
     });
 
-    // Actualizar Textos
     const totalSecs = filteredLogs.reduce((acc, l) => acc + l.duration, 0);
     document.getElementById('repTotalTime').innerText = formatDurationStr(totalSecs);
     document.getElementById('repTotalSessions').innerText = filteredLogs.length;
@@ -615,7 +690,6 @@ function renderAnalytics() {
         return;
     }
 
-    // Agrupar por Proyecto
     const projTotals = {};
     filteredLogs.forEach(l => { 
         const pId = l.projectId || 'none';
@@ -627,7 +701,6 @@ function renderAnalytics() {
     const favProj = favProjId === 'none' ? {name: '日常 (General)'} : projects.find(p => p.id === favProjId);
     document.getElementById('repFavProject').innerText = favProj ? favProj.name : '-';
 
-    // Preparar Data para Chart.js
     const labels = [];
     const dataVals = [];
     const bgColors = [];
@@ -636,22 +709,18 @@ function renderAnalytics() {
         const proj = pid === 'none' ? {name: '日常 (Gen)', color: '#636e72'} : projects.find(p => p.id === pid);
         if(!proj) return;
         labels.push(proj.name);
-        dataVals.push(duration / 3600); // Horas
+        dataVals.push(duration / 3600); 
         bgColors.push(proj.color || '#636e72');
     });
 
-    // Color del texto según el Tema actual (Claro u Oscuro)
     const isDark = document.body.getAttribute('data-theme') !== 'pastel';
     const textColor = isDark ? '#f8fafc' : '#2d3436';
 
     const ctx = document.getElementById('analyticsChart').getContext('2d');
-    if (analyticsChartInstance) {
-        analyticsChartInstance.destroy();
-    }
+    if (analyticsChartInstance) { analyticsChartInstance.destroy(); }
 
-    // Renderizar Gráfica
     analyticsChartInstance = new Chart(ctx, {
-        type: currentChartType, // 'bar' o 'doughnut'
+        type: currentChartType, 
         data: {
             labels: labels,
             datasets: [{
@@ -668,32 +737,12 @@ function renderAnalytics() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: currentChartType === 'doughnut',
-                    position: 'right',
-                    labels: { color: textColor, font: { family: 'Noto Sans SC', size: 14 } }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let val = context.raw;
-                            let hrs = Math.floor(val);
-                            let mins = Math.round((val - hrs) * 60);
-                            return ` ${hrs}h ${mins}m`;
-                        }
-                    }
-                }
+                legend: { display: currentChartType === 'doughnut', position: 'right', labels: { color: textColor, font: { family: 'Noto Sans SC', size: 14 } } },
+                tooltip: { callbacks: { label: function(context) { let val = context.raw; let hrs = Math.floor(val); let mins = Math.round((val - hrs) * 60); return ` ${hrs}h ${mins}m`; } } }
             },
             scales: currentChartType === 'bar' ? {
-                y: { 
-                    beginAtZero: true, 
-                    ticks: { color: textColor }, 
-                    grid: { color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' } 
-                },
-                x: { 
-                    ticks: { color: textColor, font: { family: 'Noto Sans SC', weight: 'bold' } },
-                    grid: { display: false } 
-                }
+                y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' } },
+                x: { ticks: { color: textColor, font: { family: 'Noto Sans SC', weight: 'bold' } }, grid: { display: false } }
             } : { x: {display: false}, y: {display: false} }
         }
     });
@@ -701,7 +750,7 @@ function renderAnalytics() {
 
 function launchConfetti() {
     const overlay = document.getElementById('confettiOverlay');
-    const emojis = ['🎉', '✨', '🐾', '🔥', '🌸', '🏆', '⚕️', '💉', '📖', '🍵']; 
+    const emojis = ['🎉', '✨', '🐾', '🔥', '🌸', '🏆', '💎', '💎', '📖', '🍵']; 
     for(let i=0; i<60; i++) {
         const drop = document.createElement('div');
         drop.className = 'emoji-drop';

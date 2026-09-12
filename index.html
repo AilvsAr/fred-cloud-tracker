@@ -7,11 +7,7 @@
     <link rel="icon" href="fredIcon.png" type="image/jpeg">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Librería para Gráficos Profesionales -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
@@ -34,13 +30,13 @@
         </div>
     </div>
 
-    <!-- POPUP 30 MINUTOS -->
+    <!-- POPUP DE CELEBRACIÓN -->
     <div id="milestonePopup" class="milestone-popup">
         <div id="confettiOverlay" class="confetti-overlay"></div> 
         <div class="milestone-content poly-card scale-in" style="z-index: 2; position: relative;">
             <img src="fredDance.gif" alt="Celebrate GIF">
-            <h2 class="rainbow-text">30分钟过去了！<span class="sub-en">30 minutes have passed!</span></h2>
-            <p>干得好！继续保持 ✨<span class="sub-en">Great job! Keep it up</span></p>
+            <h2 class="rainbow-text" id="popupTitle">干得好！</h2>
+            <p id="popupMessage" style="color: var(--text-dark); font-weight: 700; font-size: 1.1rem;">继续保持 ✨</p>
         </div>
     </div>
 
@@ -80,13 +76,13 @@
     <div class="bg-decor bg-poly-2"></div>
     <div class="bg-decor bg-poly-3"></div>
 
-    <div class="app-container slide-in-bottom">
+    <div class="app-container slide-in-bottom" id="appMainContainer">
         
         <!-- BARRA LATERAL -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="appSidebar">
             <div class="sidebar-top">
                 <div class="user-profile">
-                    <div class="avatar-frame">
+                    <div class="avatar-frame" id="appAvatarFrame">
                         <img id="sidebarAvatarImg" class="avatar-custom-img" src="" style="display: none;">
                         <div class="avatar-poly avatar-ear-l"></div>
                         <div class="avatar-poly avatar-ear-r"></div>
@@ -104,29 +100,19 @@
                 </div>
 
                 <nav class="nav-menu">
-                    <button class="nav-item active" data-target="view-timer">
-                        <span class="nav-icon">⏱️</span>
-                        <div class="nav-text">时间追踪器 <span class="sub-en">Time Tracker</span></div>
+                    <button class="nav-item active" data-target="view-timer"><span class="nav-icon">⏱️</span><div class="nav-text">时间追踪器 <span class="sub-en">Time Tracker</span></div></button>
+                    <button class="nav-item" data-target="view-profile"><span class="nav-icon">🛡️</span><div class="nav-text">我的档案 <span class="sub-en">My Profile</span></div></button>
+                    <button class="nav-item" data-target="view-todos"><span class="nav-icon">📝</span><div class="nav-text">待办事项 <span class="sub-en">Task List</span></div></button>
+                    <button class="nav-item" data-target="view-projects"><span class="nav-icon">📁</span><div class="nav-text">我的项目 <span class="sub-en">My Projects</span></div></button>
+                    <button class="nav-item" data-target="view-reports"><span class="nav-icon">📊</span><div class="nav-text">数据分析 <span class="sub-en">Analytics</span></div></button>
+                    <button class="nav-item" data-target="view-sounds"><span class="nav-icon">📻</span><div class="nav-text">专注音乐 <span class="sub-en">Focus Sounds</span></div></button>
+                    
+                    <!-- NUEVAS VISTAS: TIENDA Y DONACIONES -->
+                    <button class="nav-item" data-target="view-shop" style="margin-top: 10px; background: rgba(0, 243, 255, 0.1); border: 1px dashed var(--secondary-color);">
+                        <span class="nav-icon">💎</span><div class="nav-text">碎片商店 <span class="sub-en">Gem Shop</span></div>
                     </button>
-                    <button class="nav-item" data-target="view-profile">
-                        <span class="nav-icon">🛡️</span>
-                        <div class="nav-text">我的档案 <span class="sub-en">My Profile</span></div>
-                    </button>
-                    <button class="nav-item" data-target="view-todos">
-                        <span class="nav-icon">📝</span>
-                        <div class="nav-text">待办事项 <span class="sub-en">Task List</span></div>
-                    </button>
-                    <button class="nav-item" data-target="view-projects">
-                        <span class="nav-icon">📁</span>
-                        <div class="nav-text">我的项目 <span class="sub-en">My Projects</span></div>
-                    </button>
-                    <button class="nav-item" data-target="view-reports">
-                        <span class="nav-icon">📊</span>
-                        <div class="nav-text">数据分析 <span class="sub-en">Analytics</span></div>
-                    </button>
-                    <button class="nav-item" data-target="view-sounds">
-                        <span class="nav-icon">📻</span>
-                        <div class="nav-text">专注音乐 <span class="sub-en">Focus Sounds</span></div>
+                    <button class="nav-item" data-target="view-donations" style="background: rgba(255, 179, 186, 0.1); border: 1px dashed var(--primary-color);">
+                        <span class="nav-icon">💖</span><div class="nav-text">支持作者 <span class="sub-en">Donate</span></div>
                     </button>
                 </nav>
             </div>
@@ -141,10 +127,7 @@
 
                 <div class="neon-toggle-container">
                     <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">⚡ 霓虹灯流 <span class="sub-en" style="display:inline;">Neon Flow</span></span>
-                    <label class="switch">
-                        <input type="checkbox" id="neonFlowToggle">
-                        <span class="slider round"></span>
-                    </label>
+                    <label class="switch"><input type="checkbox" id="neonFlowToggle"><span class="slider round"></span></label>
                 </div>
 
                 <div class="sidebar-widget">
@@ -155,7 +138,6 @@
             </div>
         </aside>
 
-        <!-- CONTENIDO PRINCIPAL -->
         <main class="main-content">
             <header class="top-header slide-in-top">
                 <div class="header-greeting">
@@ -163,14 +145,19 @@
                     <p>云连接稳定。准备工作。<span class="sub-en">Cloud connection stable. Ready to work.</span></p>
                 </div>
                 <div class="header-stats">
-                    <div class="mini-stat bouncy-hover">
+                    <!-- CONTADOR DE DIAMANTES -->
+                    <div class="diamond-display bouncy-hover">
+                        <span style="font-size: 1.5rem;">💎</span>
+                        <span id="topDiamondCount" style="font-size: 1.4rem; font-weight: 900; color: #00f3ff; text-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+                    </div>
+                    <div class="mini-stat bouncy-hover" style="margin-left: 10px;">
                         <span class="stat-icon">🔥</span>
                         <div class="stat-info">
                             <span class="stat-num" id="tasksDone">0</span>
                             <span class="stat-label">已完成 <span class="sub-en">Done</span></span>
                         </div>
                     </div>
-                    <div class="clock" id="liveClock">00:00</div>
+                    <div class="clock" id="liveClock" style="margin-left: 15px;">00:00</div>
                 </div>
             </header>
 
@@ -264,6 +251,39 @@
                     </div>
                 </section>
 
+                <!-- VISTA 7: TIENDA (SHOP) -->
+                <section id="view-shop" class="view-section">
+                    <div class="poly-card bouncy-hover" style="margin-bottom: 25px; text-align: center; background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(255, 0, 234, 0.1));">
+                        <h2 style="font-size: 2rem; margin-bottom: 10px;">碎片商店 💎 <span class="sub-en">Gem Shop</span></h2>
+                        <p style="color: var(--text-dark); font-weight: 700;">通过升级赚取钻石来购买独特的界面效果！<br><span class="sub-en">Earn diamonds by leveling up to buy unique interface effects!</span></p>
+                    </div>
+
+                    <div class="shop-grid" id="shopGrid">
+                        <!-- ITEMS DE LA TIENDA SE RENDERIZAN AQUÍ JS -->
+                    </div>
+                </section>
+
+                <!-- VISTA 8: DONACIONES -->
+                <section id="view-donations" class="view-section">
+                    <div class="poly-card bouncy-hover" style="text-align: center; padding: 40px 20px;">
+                        <span style="font-size: 4rem; display: block; margin-bottom: 20px;" class="pulse-anim">💖</span>
+                        <h2 style="font-size: 2.2rem; margin-bottom: 15px;" class="rainbow-text">支持 Fred 的开发旅程</h2>
+                        <p style="color: var(--text-dark); font-size: 1.1rem; font-weight: 600; margin-bottom: 30px; line-height: 1.6;">
+                            嗨！我是 Fred Jitterbet。<br>如果你喜欢这个云端追踪器，请考虑请我喝杯咖啡。<br>你的支持是我继续更新代码和写小说的最大动力！✨<br>
+                            <span class="sub-en">Hi! I'm Fred. If you enjoy this cloud tracker, consider buying me a coffee. Your support fuels my coding and novel writing!</span>
+                        </p>
+                        
+                        <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                            <a href="#" class="btn-primary-poly pop-anim" style="text-decoration: none; display: flex; align-items: center; background: #FF5E5B;">
+                                ☕ 赞助一杯咖啡 (Ko-fi)
+                            </a>
+                            <a href="#" class="btn-primary-poly pop-anim" style="text-decoration: none; display: flex; align-items: center; background: #009cde;">
+                                💳 PayPal 捐赠
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- VISTA 2: LISTA DE TAREAS -->
                 <section id="view-todos" class="view-section">
                     <div class="form-panel poly-card bouncy-hover" style="margin-bottom: 25px;">
@@ -290,10 +310,8 @@
                     <div class="project-grid" id="projectList"></div>
                 </section>
 
-                <!-- VISTA 4: REPORTES (TOTALMENTE REDISEÑADO CON CHART.JS) -->
+                <!-- VISTA 4: REPORTES -->
                 <section id="view-reports" class="view-section">
-                    
-                    <!-- NUEVOS CONTROLES DE ANALYTICS -->
                     <div class="analytics-controls poly-card bouncy-hover" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                         <div class="time-filters">
                             <button class="btn-filter" data-filter="daily">今日 Daily</button>
@@ -316,7 +334,6 @@
                     
                     <div class="chart-panel poly-card bouncy-hover">
                         <div class="chart-header"><h3 class="card-title">📊 时间分布 <span class="sub-en">Time Distribution</span></h3><button class="btn-primary-poly small pop-anim" id="btnExportCSV">📥 导出 CSV <span class="sub-en" style="color:#fff;">Export CSV</span></button></div>
-                        <!-- CONTENEDOR PARA CHART.JS -->
                         <div class="canvas-container" style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
                             <canvas id="analyticsChart"></canvas>
                         </div>
