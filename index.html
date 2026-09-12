@@ -20,7 +20,7 @@
                 <div class="avatar-poly avatar-ear-l"></div>
                 <div class="avatar-poly avatar-ear-r"></div>
                 <div class="avatar-poly avatar-face"></div>
-                <div class="avatar-poly avatar-snout"></div>
+                <div class="avatar-poly avatar-snout">🐾</div>
             </div>
             <h2>登录系统 <span class="sub-en">System Login</span></h2>
             <p>连接您的神经链接 <br><span class="sub-en">Connect your neural link</span></p>
@@ -101,6 +101,11 @@
 
                 <nav class="nav-menu">
                     <button class="nav-item active" data-target="view-timer"><span class="nav-icon">⏱️</span><div class="nav-text">时间追踪器 <span class="sub-en">Time Tracker</span></div></button>
+                    <!-- NUEVO BOTÓN IA MENTOR -->
+                    <button class="nav-item" data-target="view-ai" style="background: rgba(186, 255, 201, 0.1); border: 1px dashed var(--accent-color);">
+                        <span class="nav-icon">🤖</span><div class="nav-text">智能助手 <span class="sub-en">AI Mentor</span></div>
+                    </button>
+                    
                     <button class="nav-item" data-target="view-profile"><span class="nav-icon">🛡️</span><div class="nav-text">我的档案 <span class="sub-en">My Profile</span></div></button>
                     <button class="nav-item" data-target="view-todos"><span class="nav-icon">📝</span><div class="nav-text" id="navTodosText">待办事项 <span class="sub-en">Task List</span></div></button>
                     <button class="nav-item" data-target="view-projects"><span class="nav-icon">📁</span><div class="nav-text">我的项目 <span class="sub-en">My Projects</span></div></button>
@@ -120,7 +125,7 @@
                 <div class="theme-switcher">
                     <button class="theme-btn" data-theme="pastel" title="Pastel Cloud">🌸</button>
                     <button class="theme-btn" data-theme="chongqing" title="Neon Chongqing">🌃</button>
-                    <button class="theme-btn" data-theme="dark" title="Midnight Leopard"></button>
+                    <button class="theme-btn" data-theme="dark" title="Midnight Leopard">🐾</button>
                     <button id="btnLogout" class="btn-text danger pop-anim" style="margin-left: 5px; padding: 5px 12px; border-radius: 12px;" title="Cerrar Sesión">🚪 出去</button>
                 </div>
 
@@ -201,6 +206,44 @@
                     <div class="logs-container" id="logListContainer"></div>
                 </section>
 
+                <!-- NUEVA VISTA: MENTOR IA -->
+                <section id="view-ai" class="view-section">
+                    <div class="poly-card bouncy-hover" style="margin-bottom: 20px;">
+                        <h2 class="rainbow-text" style="font-size: 2.2rem; margin-bottom: 10px;">🤖 AI 学习顾问 <span class="sub-en">AI Study Mentor</span></h2>
+                        <p style="color: var(--text-dark); margin-bottom: 20px; font-weight: 600;">
+                            连接大语言模型 (Gemini AI)，基于你的追踪数据提供个性化建议。<br>
+                            <span class="sub-en">Conecta con Gemini AI para recibir consejos personalizados basados en tus tiempos.</span>
+                        </p>
+                        
+                        <div style="background: var(--input-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--secondary-color);">
+                            <label style="font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 10px;">🔑 设置 Gemini API Key <span class="sub-en">Set your API Key</span></label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="password" id="geminiApiKey" class="input-cute" placeholder="AIzaSy..." style="flex: 1;">
+                                <button class="btn-primary-poly pop-anim small" id="btnSaveApiKey">保存 Save</button>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+                                你的密钥安全地存储在本地浏览器中。<a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary-color);">点击这里免费获取 (Get it free here)</a>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="poly-card bouncy-hover" style="min-height: 350px; display: flex; flex-direction: column;">
+                        <h3 class="card-title">💬 导师分析 <span class="sub-en">Mentor Analysis</span></h3>
+                        
+                        <div id="aiChatArea" style="flex: 1; margin-bottom: 20px; overflow-y: auto; padding: 20px; background: rgba(0,0,0,0.05); border-radius: 15px; border-left: 4px solid var(--accent-color);">
+                            <div style="text-align: center; color: var(--text-muted); margin-top: 50px;">
+                                <span style="font-size: 3rem; display: block; margin-bottom: 10px; animation: floatPulse 3s infinite;">💡</span>
+                                准备好分析你的数据了吗？点击下方按钮！<br>
+                                <span class="sub-en">Ready to analyze your data? Click the button below!</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-primary-poly pop-anim" id="btnGetAIAdvice" style="width: 100%; font-size: 1.2rem; height: 60px;">
+                            ✨ 分析我的数据 (Analyze My Data)
+                        </button>
+                    </div>
+                </section>
+
                 <!-- VISTA 6: PERFIL RPG -->
                 <section id="view-profile" class="view-section">
                     <div class="poly-card bouncy-hover" style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
@@ -209,7 +252,7 @@
                             <div class="avatar-poly avatar-ear-l" style="width: 40px; height: 40px; top: 10px; left: 10px;"></div>
                             <div class="avatar-poly avatar-ear-r" style="width: 40px; height: 40px; top: 10px; right: 10px;"></div>
                             <div class="avatar-poly avatar-face" style="width: 100px; height: 80px;"></div>
-                            <div class="avatar-poly avatar-snout" style="font-size: 3rem; margin-top: 15px;"></div>
+                            <div class="avatar-poly avatar-snout" style="width: 20px; height: 14px; margin-top: 25px;"></div>
                         </div>
                         <div class="profile-info" style="flex: 1; min-width: 250px;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -272,13 +315,11 @@
                         </p>
                         
                         <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-                            <!-- ENLACE DE KO-FI ACTUALIZADO -->
                             <a href="https://ko-fi.com/fred2030br" target="_blank" class="btn-primary-poly pop-anim" style="text-decoration: none; display: flex; align-items: center; background: #FF5E5B;">
                                 ☕ 赞助一杯咖啡 (Ko-fi)
                             </a>
-                            <!-- Mantenemos el placeholder de PayPal por si alguna vez quieres activarlo -->
-                            <a href="https://paypal.me/" target="_blank" class="btn-primary-poly pop-anim" style="text-decoration: none; display: flex; align-items: center; background: #009cde; opacity: 0.6;">
-                                💳 PayPal (Próximamente)
+                            <a href="https://paypal.me/fred2030br" target="_blank" class="btn-primary-poly pop-anim" style="text-decoration: none; display: flex; align-items: center; background: #009cde;">
+                                💳 PayPal 捐赠
                             </a>
                         </div>
                     </div>

@@ -110,29 +110,17 @@ function applyTheme(themeName) {
     if (analyticsChartInstance) renderAnalytics();
 }
 
-// NUEVO: Función para actualizar el saludo con el nombre dinámico del usuario
 function updateGreeting() {
     const hour = new Date().getHours();
     let greetingCN = "";
     let greetingEN = "";
     let emoji = "";
 
-    if (hour < 12) {
-        greetingCN = "早上好";
-        greetingEN = "Good Morning";
-        emoji = "☀️";
-    } else if (hour < 18) {
-        greetingCN = "下午好";
-        greetingEN = "Good Afternoon";
-        emoji = "☕";
-    } else {
-        greetingCN = "晚上好";
-        greetingEN = "Good Evening";
-        emoji = "🌙";
-    }
+    if (hour < 12) { greetingCN = "早上好"; greetingEN = "Good Morning"; emoji = "☀️"; } 
+    else if (hour < 18) { greetingCN = "下午好"; greetingEN = "Good Afternoon"; emoji = "☕"; } 
+    else { greetingCN = "晚上好"; greetingEN = "Good Evening"; emoji = "🌙"; }
 
     const displayName = userProfile.name || '弗雷德'; 
-
     const greetingEl = document.getElementById('greetingText');
     if (greetingEl) {
         greetingEl.innerHTML = `${greetingCN}，${displayName}！${emoji} <span class="sub-en">${greetingEN}, ${displayName}!</span>`;
@@ -329,7 +317,6 @@ function initApp() {
         playCutePop();
     };
 
-    // LÓGICA DEL EDITOR DE PERFIL
     document.getElementById('btnEditProfile').onclick = () => {
         playCutePop();
         document.getElementById('editProfileName').value = userProfile.name || '';
@@ -411,6 +398,64 @@ function initApp() {
             showMilestonePopup("⚠️ 中等任务提醒<br><span class='sub-en' style='font-size:1.2rem;'>Moderate Task</span>", "别忘了你的中等优先级任务。<br><span class='sub-en'>Don't forget your moderate tasks.</span>");
         }
     }, 60000);
+
+    // LÓGICA DE LA IA MENTORA CON GEMINI API
+    const savedApiKey = localStorage.getItem('fred_gemini_api_key');
+    if(savedApiKey) document.getElementById('geminiApiKey').value = savedApiKey;
+
+    document.getElementById('btnSaveApiKey').onclick = () => {
+        const key = document.getElementById('geminiApiKey').value.trim();
+        localStorage.setItem('fred_gemini_api_key', key);
+        alert("API Key 保存成功！(¡API Key guardada!)");
+    };
+
+    document.getElementById('btnGetAIAdvice').onclick = async () => {
+        const apiKey = localStorage.getItem('fred_gemini_api_key');
+        if(!apiKey) return alert("请先输入并保存 Gemini API Key！\n(¡Ingresa tu API Key de Gemini primero!)");
+
+        const btn = document.getElementById('btnGetAIAdvice');
+        btn.innerText = "🧠 AI 思考中... (Thinking...)";
+        btn.disabled = true;
+
+        const chatArea = document.getElementById('aiChatArea');
+        chatArea.innerHTML = '<div style="text-align:center; padding: 20px;" class="pulse-anim">⏳ 分析数据中... (Analyzing data...)</div>';
+
+        // Recopilamos contexto de los últimos días
+        const recentLogs = logs.slice(0, 15);
+        const totalMins = Math.floor(logs.reduce((acc, l) => acc + l.duration, 0) / 60);
+        let dataContext = `Recent tracked tasks:\n`;
+        recentLogs.forEach(l => {
+            const pName = projects.find(p => p.id === l.projectId)?.name || 'General';
+            dataContext += `- ${l.desc} (${pName}): ${Math.floor(l.duration/60)} mins\n`;
+        });
+
+        // Prompt del sistema con tu contexto personalizado
+        const prompt = `Act as an AI study mentor for the user, Alan (who goes by Fred Jitterbet). Fred is a 20-year-old medical student and a dark fantasy novelist (author of "Into The Darkness"). He also studies Chinese, English, and Japanese.
+        He has tracked ${totalMins} total minutes of productivity.
+        Here are his most recent tracked sessions:
+        ${dataContext}
+        Based on this data, give him a short, highly motivating, and contextualized piece of advice. Acknowledge his specific studies (medical, writing, languages) if they appear in the logs. Be friendly, use emojis, and keep the response under 150 words. Write the response in a mix of Spanish and a little bit of Mandarin Chinese. Do not repeat his tasks as a list, just give the advice.`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+
+            if (!response.ok) throw new Error("API error. Verify your Key.");
+            
+            const data = await response.json();
+            const aiText = data.candidates[0].content.parts[0].text;
+
+            chatArea.innerHTML = `<div style="background: var(--card-bg); padding: 15px; border-radius: 15px; border-left: 4px solid var(--accent-color); line-height: 1.6; color: var(--text-dark);">${aiText.replace(/\n/g, '<br>')}</div>`;
+        } catch (e) {
+            chatArea.innerHTML = `<div style="color: #ff6b6b; text-align:center; padding: 20px;">Error: ${e.message}</div>`;
+        }
+
+        btn.innerText = "✨ 分析我的数据 (Analyze My Data)";
+        btn.disabled = false;
+    };
 
     if (activeTimer && activeTimer.isRunning) {
         document.getElementById('taskDesc').value = activeTimer.desc;
@@ -530,7 +575,6 @@ function updateProfileUI() {
         }
     });
 
-    // Actualizar Saludo Dinámico
     updateGreeting();
 }
 
