@@ -21,10 +21,11 @@ let currentUser = null;
 let projects = [];
 let logs = [];
 let todos = []; 
-let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '', diamonds: 0, inventory: [] };
+// Añadimos el array 'equipped' para manejar los ítems activos
+let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '', diamonds: 0, inventory: [], equipped: [] };
 let tempProfilePicBase64 = ''; 
 
-let currentKnownLevel = 0; // Para rastrear subidas de nivel en la sesión
+let currentKnownLevel = 0; 
 
 let activeTimer = JSON.parse(localStorage.getItem('fred_cloud_active')) || null;
 let timerInterval = null;
@@ -35,17 +36,22 @@ let currentChartType = 'bar';
 let currentTimeFilter = 'weekly';
 
 // =========================================
-// CATALOGO DE LA TIENDA
+// CATALOGO DE LA TIENDA Y EFECTOS
 // =========================================
 const shopItems = [
-    { id: 'effect_dark_fantasy', name: '暗黑幻想光标', desc: 'Dark Fantasy Cursor', price: 15, icon: '⚔️', classStr: 'effect-dark-fantasy' },
-    { id: 'effect_cyberpunk', name: '赛博朋克边框', desc: 'Cyberpunk Inner Glow', price: 25, icon: '🌃', classStr: 'effect-cyberpunk' },
-    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Effect', price: 50, icon: '🐾', classStr: 'effect-leopard-paws' },
-    // NUEVOS ÍTEMS PREMIUM
-    { id: 'effect_med_pulse', name: '医疗心跳脉冲', desc: 'Medical Heartbeat Avatar Pulse', price: 150, icon: '⚕️', classStr: 'effect-med-pulse' },
-    { id: 'effect_cyber_grid', name: '科幻矩阵全息', desc: 'Sci-Fi Holographic Background Grid', price: 500, icon: '🛰️', classStr: 'effect-cyber-grid' },
-    { id: 'effect_chongqing_leopard', name: '重庆赛博雪豹神', desc: 'Ultimate Chongqing Cyber-Leopard Aura', price: 1000, icon: '🐆', classStr: 'effect-chongqing-leopard' }
+    { id: 'effect_dark_fantasy', name: '暗黑幻想光标', desc: 'Dark Fantasy Cursor', price: 15, icon: '⚔️', classStr: 'effect-dark-fantasy', details: '将鼠标指针变为黑暗奇幻风格的十字线。 (Cambia el cursor a una estética oscura).' },
+    { id: 'effect_cyberpunk', name: '赛博朋克边框', desc: 'Cyberpunk Inner Glow', price: 25, icon: '🌃', classStr: 'effect-cyberpunk', details: '为所有卡片添加赛博朋克风格的霓虹内发光。 (Añade un resplandor neón interior a las tarjetas).' },
+    { id: 'cursor_writer', name: '羽毛笔光标', desc: 'Quill Pen Cursor', price: 30, icon: '✒️', classStr: 'cursor-writer', details: '写作时使用的古典羽毛笔光标。 (Un cursor clásico de pluma para tus sesiones de escritura).' },
+    { id: 'cursor_med', name: '手术刀光标', desc: 'Scalpel Cursor', price: 30, icon: '🗡️', classStr: 'cursor-med', details: '高精度手术刀光标，适合医学研究。 (Un cursor en forma de bisturí de alta precisión).' },
+    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Background', price: 50, icon: '🐾', classStr: 'effect-leopard-paws', details: '背景应用复古滤镜。 (Aplica un filtro cálido y huellas al fondo).' },
+    { id: 'effect_med_pulse', name: '医疗心跳脉冲', desc: 'Medical Heartbeat Avatar Pulse', price: 150, icon: '⚕️', classStr: 'effect-med-pulse', details: '你的头像会像心脏一样跳动，发出红色光芒。 (Tu foto de perfil latirá con un aura médica roja).' },
+    { id: 'profile_glitch', name: '故障艺术头像', desc: 'Glitch Profile Pic', price: 200, icon: '📺', classStr: 'profile-glitch', details: '为头像添加赛博故障艺术效果。 (Aplica un efecto de interferencia cibernética a tu foto).' },
+    { id: 'menu_glassmorphism', name: '极致玻璃态', desc: 'Ultra Glassmorphism Menus', price: 300, icon: '🧊', classStr: 'menu-glassmorphism', details: '使侧边栏变得极致透明且模糊。 (Hace que los menús sean extra transparentes y difuminados).' },
+    { id: 'effect_cyber_grid', name: '科幻矩阵全息', desc: 'Sci-Fi Holographic Grid', price: 500, icon: '🛰️', classStr: 'effect-cyber-grid', details: '在背景上投影出全息科幻网格。 (Proyecta una cuadrícula holográfica sobre el fondo).' },
+    { id: 'effect_chongqing_leopard', name: '重庆赛博神', desc: 'Ultimate Chongqing Aura', price: 1000, icon: '🐆', classStr: 'effect-chongqing-leopard', details: '整个界面亮起强烈的赛博霓虹色彩。 (Ilumina toda la interfaz con colores de neón intensos).' },
+    { id: 'effect_thunder_shatter', name: '雷霆碎裂', desc: 'Lightning Shatter', price: 1000, icon: '⚡', classStr: 'effect-thunder-shatter', details: '史诗级效果！卡片被闪电击碎并闪烁。 (¡Efecto épico! Las tarjetas parecen agrietadas por un relámpago inestable).' }
 ];
+
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playCutePop() {
     if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -61,7 +67,7 @@ function playCutePop() {
 
 function playCelebrationSound() {
     if(audioCtx.state === 'suspended') audioCtx.resume();
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98]; // C5, E5, G5, C6, E6, G6
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98]; 
     notes.forEach((freq, i) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -126,6 +132,7 @@ async function loadCloudData() {
             userProfile = { ...userProfile, ...userDoc.data().profile };
         }
         if(!userProfile.inventory) userProfile.inventory = [];
+        if(!userProfile.equipped) userProfile.equipped = []; // Nuevo array para items equipados
         if(!userProfile.diamonds) userProfile.diamonds = 0;
 
         const pSnap = await db.collection('users').doc(currentUser.uid).collection('projects').get();
@@ -202,7 +209,8 @@ function initApp() {
     if (!userProfile.vipBonusClaimed) {
         userProfile.diamonds = (userProfile.diamonds || 0) + 100000;
         userProfile.vipBonusClaimed = true;
-        syncProfile(); // Guardamos el regalo en la nube
+        if(!userProfile.equipped) userProfile.equipped = [];
+        syncProfile(); 
         alert("💎 VIP ACCESS: Se han añadido 100,000 diamantes a tu cuenta de desarrollador. ¡Disfruta la tienda!");
     }
 
@@ -213,14 +221,13 @@ function initApp() {
     renderProjects();
     renderTodos();
     
-    // Inicializar Nivel Base sin disparar alarma
     const allTimeSecs = logs.reduce((acc, l) => acc + l.duration, 0);
     const initTotalXP = Math.floor(allTimeSecs / 60) * 10;
     currentKnownLevel = getLevelData(initTotalXP).level;
     
     updateDashboardStats();
     renderShop();
-    applyPurchasedEffects();
+    applyPurchasedEffects(); // Ahora solo aplica los "equipados"
 
     const savedTheme = localStorage.getItem('fred_theme') || 'pastel';
     applyTheme(savedTheme);
@@ -284,7 +291,6 @@ function initApp() {
         playCutePop();
     };
 
-    // LÓGICA DEL EDITOR DE PERFIL
     document.getElementById('btnEditProfile').onclick = () => {
         playCutePop();
         document.getElementById('editProfileName').value = userProfile.name || '';
@@ -340,7 +346,7 @@ function initApp() {
         document.getElementById('profileEditModal').style.display = 'none';
     };
 
-    document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup("测试", "这是一条测试消息 ✨"); };
+    document.getElementById('btnTestPopup').onclick = () => { showMilestonePopup("测试动画", "这是来自测试的通知 ✨"); };
 
     document.onkeydown = (e) => { 
         if (e.ctrlKey && e.code === 'Space') { e.preventDefault(); toggleTimer(); } 
@@ -563,17 +569,16 @@ function updateDashboardStats() {
     const levelData = getLevelData(totalXP);
     const progressPct = (levelData.currentLevelXP / levelData.xpRequired) * 100;
     
-    // LÓGICA DE ECONOMÍA POR LEVEL UP
     if (currentKnownLevel > 0 && levelData.level > currentKnownLevel) {
         const levelsGained = levelData.level - currentKnownLevel;
-        const diamondsEarned = levelsGained * 10; // 10 Diamantes por Nivel
+        const diamondsEarned = levelsGained * 10; 
         userProfile.diamonds = (userProfile.diamonds || 0) + diamondsEarned;
         syncProfile();
         updateProfileUI();
         showMilestonePopup("🎉 升级了！Level Up!", `你获得了 ${diamondsEarned} 💎 钻石!`);
         currentKnownLevel = levelData.level;
     } else {
-        currentKnownLevel = levelData.level; // En caso de que se hayan borrado logs y baje
+        currentKnownLevel = levelData.level; 
     }
 
     document.getElementById('rpgLevel').innerText = levelData.level;
@@ -592,28 +597,36 @@ function updateDashboardStats() {
 }
 
 // =========================================
-// 10. SHOP ENGINE (TIENDA Y EFECTOS)
+// 10. SHOP ENGINE (NUEVO SISTEMA DE EQUIPAR)
 // =========================================
 function renderShop() {
     const grid = document.getElementById('shopGrid');
     grid.innerHTML = '';
     
+    if(!userProfile.inventory) userProfile.inventory = [];
+    if(!userProfile.equipped) userProfile.equipped = [];
+    
     shopItems.forEach(item => {
-        const isOwned = userProfile.inventory && userProfile.inventory.includes(item.id);
+        const isOwned = userProfile.inventory.includes(item.id);
+        const isEquipped = userProfile.equipped.includes(item.id);
         const canAfford = (userProfile.diamonds || 0) >= item.price;
         
         let btnHTML = '';
         if (isOwned) {
-            btnHTML = `<button class="btn-buy disabled">已拥有 Owned</button>`;
+            if (isEquipped) {
+                btnHTML = `<button class="btn-buy" style="background: #ff6b6b; color: #fff;" onclick="toggleEquipItem('${item.id}')">卸下 Unequip</button>`;
+            } else {
+                btnHTML = `<button class="btn-buy" style="background: #1dd1a1; color: #fff;" onclick="toggleEquipItem('${item.id}')">装备 Equip</button>`;
+            }
         } else {
             btnHTML = `<button class="btn-buy ${!canAfford ? 'disabled' : ''}" onclick="buyItem('${item.id}', ${item.price})">购买 Buy</button>`;
         }
 
         grid.innerHTML += `
-            <div class="shop-card ${isOwned ? 'owned' : ''}">
+            <div class="shop-card ${isOwned ? 'owned' : ''} ${isEquipped ? 'equipped' : ''}">
                 <span class="shop-icon">${item.icon}</span>
                 <h3 style="margin-bottom: 5px; color: var(--text-dark);">${item.name}</h3>
-                <p style="font-size: 0.8rem; color: var(--text-muted); height: 30px;">${item.desc}</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); height: 40px; margin-bottom:10px;">${item.desc}</p>
                 <div class="shop-price">💎 ${item.price}</div>
                 ${btnHTML}
             </div>
@@ -627,23 +640,49 @@ async function buyItem(itemId, price) {
         return;
     }
     
-    playCelebrationSound();
+    const item = shopItems.find(i => i.id === itemId);
+    
     userProfile.diamonds -= price;
     if(!userProfile.inventory) userProfile.inventory = [];
+    if(!userProfile.equipped) userProfile.equipped = [];
+    
     userProfile.inventory.push(itemId);
+    userProfile.equipped.push(itemId); // Se equipa automáticamente al comprar
     
     updateProfileUI();
     renderShop();
     applyPurchasedEffects();
     await syncProfile();
     
-    showMilestonePopup("购买成功！", "Purchased Successfully ✨");
+    // Alerta que explica lo que hace el objeto
+    showMilestonePopup("购买成功！(Purchased!)", `✨ ${item.details}`);
+}
+
+async function toggleEquipItem(itemId) {
+    playCutePop();
+    if(!userProfile.equipped) userProfile.equipped = [];
+    
+    const index = userProfile.equipped.indexOf(itemId);
+    if (index > -1) {
+        userProfile.equipped.splice(index, 1); // Desequipar
+    } else {
+        userProfile.equipped.push(itemId); // Equipar
+    }
+    
+    renderShop();
+    applyPurchasedEffects();
+    await syncProfile();
 }
 
 function applyPurchasedEffects() {
-    if(!userProfile.inventory) return;
+    // Primero, quitamos TODAS las clases de la tienda para evitar conflictos
+    shopItems.forEach(item => document.body.classList.remove(item.classStr));
+    
+    if(!userProfile.equipped) return;
+    
+    // Luego, aplicamos SOLAMENTE las clases equipadas
     shopItems.forEach(item => {
-        if (userProfile.inventory.includes(item.id)) {
+        if (userProfile.equipped.includes(item.id)) {
             document.body.classList.add(item.classStr);
         }
     });

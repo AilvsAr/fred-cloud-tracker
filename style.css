@@ -55,50 +55,62 @@ body {
     transition: background 0.6s ease, color 0.6s ease;
 }
 
-/* EFECTOS DE TIENDA COMPRADOS */
-/* EFECTOS DE TIENDA COMPRADOS */
+/* =========================================
+   EFECTOS DE LA TIENDA EQUIPADOS
+   ========================================= */
 body.effect-dark-fantasy { cursor: crosshair !important; }
+
+body.cursor-med { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='24' font-size='24'>🗡️</text></svg>") 0 24, auto !important; }
+
+body.cursor-writer { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='24' font-size='24'>✒️</text></svg>") 0 24, auto !important; }
+
 body.effect-cyberpunk .app-container { box-shadow: inset 0 0 50px rgba(0, 243, 255, 0.3), 0 0 50px rgba(255, 0, 234, 0.2); border: 2px solid var(--secondary-color); border-radius: 20px; }
+
 body.effect-leopard-paws .bg-decor { opacity: 0.4; filter: sepia(1) hue-rotate(-50deg) saturate(3); }
 
-/* NUEVO: Pulso Médico */
-body.effect-med-pulse .avatar-frame { 
-    animation: heartbeat 1.5s infinite; 
-    box-shadow: 0 0 25px rgba(255, 71, 87, 0.8); 
-    border: 3px solid #ff4757;
-}
-@keyframes heartbeat { 
-    0% { transform: scale(1); } 
-    14% { transform: scale(1.1); } 
-    28% { transform: scale(1); } 
-    42% { transform: scale(1.1); } 
-    70% { transform: scale(1); } 
+/* Pulso Médico */
+body.effect-med-pulse .avatar-frame { animation: heartbeat 1.5s infinite; box-shadow: 0 0 25px rgba(255, 71, 87, 0.8); border: 3px solid #ff4757; }
+@keyframes heartbeat { 0% { transform: scale(1); } 14% { transform: scale(1.1); } 28% { transform: scale(1); } 42% { transform: scale(1.1); } 70% { transform: scale(1); } }
+
+/* Cuadrícula Sci-Fi Holográfica */
+body.effect-cyber-grid { background-image: linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px); background-size: 30px 30px; }
+
+/* Ultimate Chongqing Cyber-Leopard */
+body.effect-chongqing-leopard .app-container { border: 3px solid #fcee0a; box-shadow: 0 0 40px #ff00ea, inset 0 0 40px #00f3ff; }
+body.effect-chongqing-leopard .poly-card { border: 1px solid rgba(0, 243, 255, 0.4) !important; }
+body.effect-chongqing-leopard .user-name { text-shadow: 0 0 10px #fcee0a; color: #fff; }
+
+/* Menú Ultra Glassmorphism */
+body.menu-glassmorphism .sidebar { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.3); }
+body.menu-glassmorphism[data-theme="dark"] .sidebar { background: rgba(0, 0, 0, 0.2); }
+
+/* Avatar Glitch */
+body.profile-glitch .avatar-custom-img { animation: glitch-anim 2s infinite linear alternate-reverse; }
+@keyframes glitch-anim {
+    0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 2px); filter: drop-shadow(2px 0 red); }
+    20% { clip-path: inset(80% 0 1% 0); transform: translate(2px, -2px); filter: drop-shadow(-2px 0 blue); }
+    40% { clip-path: inset(40% 0 30% 0); transform: translate(-2px, 0); }
+    60% { clip-path: inset(90% 0 5% 0); transform: translate(2px, 2px); filter: drop-shadow(2px 0 lime); }
+    80% { clip-path: inset(20% 0 60% 0); transform: translate(-2px, -2px); }
+    100% { clip-path: inset(50% 0 30% 0); transform: translate(2px, 0); }
 }
 
-/* NUEVO: Cuadrícula Sci-Fi Holográfica */
-body.effect-cyber-grid { 
-    background-image: 
-        linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px), 
-        linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px); 
-    background-size: 30px 30px; 
+/* Efecto Thunder Shatter (1000 gemas) */
+body.effect-thunder-shatter .poly-card {
+    border: 1px solid rgba(255,255,255,0.8) !important;
+    animation: thunderStrike 4s infinite;
+    /* Grietas simuladas con gradientes */
+    background-image: linear-gradient(135deg, transparent 48%, rgba(255, 255, 255, 0.4) 49%, rgba(0, 255, 255, 0.6) 50%, transparent 51%);
+}
+@keyframes thunderStrike {
+    0%, 95% { filter: brightness(1); box-shadow: var(--shadow-soft); }
+    96% { filter: brightness(1.5) contrast(1.2); box-shadow: 0 0 30px #0ff; }
+    97% { filter: brightness(0.8); box-shadow: var(--shadow-soft); }
+    98% { filter: brightness(2) contrast(1.5); box-shadow: 0 0 60px #fff; }
+    99% { filter: brightness(1); box-shadow: var(--shadow-soft); }
 }
 
-/* NUEVO: Ultimate Chongqing Cyber-Leopard */
-body.effect-chongqing-leopard .app-container {
-    border: 3px solid #fcee0a;
-    box-shadow: 0 0 40px #ff00ea, inset 0 0 40px #00f3ff;
-}
-body.effect-chongqing-leopard .poly-card {
-    border: 1px solid rgba(0, 243, 255, 0.4) !important;
-}
-body.effect-chongqing-leopard .user-name {
-    text-shadow: 0 0 10px #fcee0a;
-    color: #fff;
-}
-
-body.effect-dark-fantasy { cursor: crosshair !important; }
-body.effect-cyberpunk .app-container { box-shadow: inset 0 0 50px rgba(0, 243, 255, 0.3), 0 0 50px rgba(255, 0, 234, 0.2); border: 2px solid var(--secondary-color); border-radius: 20px; }
-body.effect-leopard-paws .bg-decor { opacity: 0.4; filter: sepia(1) hue-rotate(-50deg) saturate(3); }
+/* ========================================= */
 
 h1, h2, h3, .clock, .time-display { font-family: 'Noto Sans SC', 'Fredoka', sans-serif; }
 
@@ -130,13 +142,6 @@ h1, h2, h3, .clock, .time-display { font-family: 'Noto Sans SC', 'Fredoka', sans
 }
 @keyframes hueShift { to { filter: hue-rotate(360deg); } }
 @keyframes pulseText { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-
-/* BACKGROUND DECOR */
-.bg-decor { position: absolute; z-index: -1; background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); backdrop-filter: blur(10px); animation: floatPoly 20s infinite alternate; opacity: 0.15; border: 1px solid rgba(255,255,255,0.1); }
-.bg-poly-1 { width: 400px; height: 400px; top: -10%; left: -5%; clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%); }
-.bg-poly-2 { width: 300px; height: 300px; bottom: -5%; right: -5%; clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 25% 100%, 0% 50%); animation-delay: -5s; animation-direction: alternate-reverse; }
-.bg-poly-3 { width: 150px; height: 150px; top: 40%; left: 85%; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); animation-delay: -9s; }
-@keyframes floatPoly { 0% { transform: translateY(0) rotate(0deg) scale(1); } 50% { transform: translateY(-40px) rotate(15deg) scale(1.05); } 100% { transform: translateY(20px) rotate(-10deg) scale(0.95); } }
 
 /* LAYOUT & SIDEBAR */
 .app-container { display: flex; height: 100vh; max-width: 1500px; margin: 0 auto; padding: 15px; gap: 20px; transition: 0.5s ease; }
@@ -197,7 +202,7 @@ h1, h2, h3, .clock, .time-display { font-family: 'Noto Sans SC', 'Fredoka', sans
 .views-container::-webkit-scrollbar-thumb { background: var(--secondary-color); border-radius: 3px; }
 .view-section { display: none; }
 .view-section.active { display: block; }
-.poly-card { background: var(--card-bg); padding: 20px; border-radius: 18px; box-shadow: var(--shadow-soft); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+.poly-card { background: var(--card-bg); padding: 20px; border-radius: 18px; box-shadow: var(--shadow-soft); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); transition: 0.3s; }
 .card-title { font-size: 1.3rem; margin-bottom: 15px; color: var(--text-dark); }
 .section-subtitle { font-size: 1.3rem; color: var(--text-dark); margin: 0;}
 
@@ -241,10 +246,11 @@ h1, h2, h3, .clock, .time-display { font-family: 'Noto Sans SC', 'Fredoka', sans
 .project-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
 .project-card h3 { font-size: 1.15rem; color: var(--text-dark); }
 
-/* SHOP CARDS */
+/* SHOP CARDS Y BOTONES EQUIPAR */
 .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .shop-card { background: var(--input-bg); border-radius: 18px; padding: 25px 20px; text-align: center; position: relative; overflow: hidden; border: 2px solid transparent; transition: 0.3s; }
-.shop-card.owned { border-color: var(--accent-color); opacity: 0.8; }
+.shop-card.owned { border-color: rgba(255, 255, 255, 0.2); }
+.shop-card.equipped { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-color); }
 .shop-icon { font-size: 3.5rem; margin-bottom: 10px; display: block; }
 .shop-price { background: #000; color: #fff; padding: 5px 12px; border-radius: 15px; font-weight: 800; display: inline-block; margin: 10px 0; font-size: 1.1rem; }
 .btn-buy { background: #00f3ff; color: #000; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.3s; width: 100%; font-size: 1.05rem;}
