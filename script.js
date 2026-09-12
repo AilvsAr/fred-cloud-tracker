@@ -110,6 +110,35 @@ function applyTheme(themeName) {
     if (analyticsChartInstance) renderAnalytics();
 }
 
+// NUEVO: Función para actualizar el saludo con el nombre dinámico del usuario
+function updateGreeting() {
+    const hour = new Date().getHours();
+    let greetingCN = "";
+    let greetingEN = "";
+    let emoji = "";
+
+    if (hour < 12) {
+        greetingCN = "早上好";
+        greetingEN = "Good Morning";
+        emoji = "☀️";
+    } else if (hour < 18) {
+        greetingCN = "下午好";
+        greetingEN = "Good Afternoon";
+        emoji = "☕";
+    } else {
+        greetingCN = "晚上好";
+        greetingEN = "Good Evening";
+        emoji = "🌙";
+    }
+
+    const displayName = userProfile.name || '弗雷德'; 
+
+    const greetingEl = document.getElementById('greetingText');
+    if (greetingEl) {
+        greetingEl.innerHTML = `${greetingCN}，${displayName}！${emoji} <span class="sub-en">${greetingEN}, ${displayName}!</span>`;
+    }
+}
+
 // =========================================
 // 4. AUTHENTICATION LOGIC 
 // =========================================
@@ -221,6 +250,7 @@ async function syncProfile() {
 // =========================================
 function initApp() {
     setupNavigation();
+    
     updateProfileUI(); 
     initAnalytics(); 
     updateProjectSelects();
@@ -382,15 +412,6 @@ function initApp() {
         }
     }, 60000);
 
-    const hour = new Date().getHours();
-    const greetings = [
-        {cn: "早上好，弗雷德！☀️", en: "Good Morning, Fred!"},
-        {cn: "下午好，弗雷德！☕", en: "Good Afternoon, Fred!"},
-        {cn: "晚上好，弗雷德！🌙", en: "Good Evening, Fred!"}
-    ];
-    const gIndex = hour < 12 ? 0 : hour < 18 ? 1 : 2;
-    document.getElementById('greetingText').innerHTML = `${greetings[gIndex].cn} <span class="sub-en">${greetings[gIndex].en}</span>`;
-
     if (activeTimer && activeTimer.isRunning) {
         document.getElementById('taskDesc').value = activeTimer.desc;
         document.getElementById('taskProject').value = activeTimer.projectId;
@@ -508,6 +529,9 @@ function updateProfileUI() {
             else { img.style.display = 'none'; }
         }
     });
+
+    // Actualizar Saludo Dinámico
+    updateGreeting();
 }
 
 function getLevelData(totalXP) {
