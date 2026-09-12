@@ -40,9 +40,12 @@ let currentTimeFilter = 'weekly';
 const shopItems = [
     { id: 'effect_dark_fantasy', name: '暗黑幻想光标', desc: 'Dark Fantasy Cursor', price: 15, icon: '⚔️', classStr: 'effect-dark-fantasy' },
     { id: 'effect_cyberpunk', name: '赛博朋克边框', desc: 'Cyberpunk Inner Glow', price: 25, icon: '🌃', classStr: 'effect-cyberpunk' },
-    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Background', price: 50, icon: '🐾', classStr: 'effect-leopard-paws' }
+    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Effect', price: 50, icon: '🐾', classStr: 'effect-leopard-paws' },
+    // NUEVOS ÍTEMS PREMIUM
+    { id: 'effect_med_pulse', name: '医疗心跳脉冲', desc: 'Medical Heartbeat Avatar Pulse', price: 150, icon: '⚕️', classStr: 'effect-med-pulse' },
+    { id: 'effect_cyber_grid', name: '科幻矩阵全息', desc: 'Sci-Fi Holographic Background Grid', price: 500, icon: '🛰️', classStr: 'effect-cyber-grid' },
+    { id: 'effect_chongqing_leopard', name: '重庆赛博雪豹神', desc: 'Ultimate Chongqing Cyber-Leopard Aura', price: 1000, icon: '🐆', classStr: 'effect-chongqing-leopard' }
 ];
-
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playCutePop() {
     if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -194,6 +197,15 @@ async function syncProfile() {
 // =========================================
 function initApp() {
     setupNavigation();
+    
+    // 🔥 CÓDIGO DE TRAMPA VIP: 100,000 diamantes exclusivos 🔥
+    if (!userProfile.vipBonusClaimed) {
+        userProfile.diamonds = (userProfile.diamonds || 0) + 100000;
+        userProfile.vipBonusClaimed = true;
+        syncProfile(); // Guardamos el regalo en la nube
+        alert("💎 VIP ACCESS: Se han añadido 100,000 diamantes a tu cuenta de desarrollador. ¡Disfruta la tienda!");
+    }
+
     updateProfileUI(); 
     initAnalytics(); 
     updateProjectSelects();
