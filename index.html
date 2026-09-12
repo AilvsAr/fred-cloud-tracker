@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <!-- POPUP DE CELEBRACIÓN -->
+    <!-- POPUP DE CELEBRACIÓN Y ALARMAS -->
     <div id="milestonePopup" class="milestone-popup">
         <div id="confettiOverlay" class="confetti-overlay"></div> 
         <div class="milestone-content poly-card scale-in" style="z-index: 2; position: relative;">
@@ -104,7 +104,7 @@
                     <button class="nav-item" data-target="view-profile"><span class="nav-icon">🛡️</span><div class="nav-text">我的档案 <span class="sub-en">My Profile</span></div></button>
                     <button class="nav-item" data-target="view-todos"><span class="nav-icon">📝</span><div class="nav-text">待办事项 <span class="sub-en">Task List</span></div></button>
                     <button class="nav-item" data-target="view-projects"><span class="nav-icon">📁</span><div class="nav-text">我的项目 <span class="sub-en">My Projects</span></div></button>
-                    <button class="nav-item" data-target="view-reports"><span class="nav-icon">📊</span><div class="nav-text">数据分析 <span class="sub-en">Analytics</span></div></button>
+                    <button class="nav-item" data-target="view-reports"><span class="nav-icon">📊</span><div class="nav-text">数据分析 🔒 <span class="sub-en">Analytics</span></div></button>
                     <button class="nav-item" data-target="view-sounds"><span class="nav-icon">📻</span><div class="nav-text">专注音乐 <span class="sub-en">Focus Sounds</span></div></button>
                     
                     <button class="nav-item" data-target="view-shop" style="margin-top: 10px; background: rgba(0, 243, 255, 0.1); border: 1px dashed var(--secondary-color);">
@@ -272,11 +272,9 @@
                         </p>
                         
                         <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-                            <!-- Reemplaza TU_USUARIO_AQUI con tu nombre de usuario real de Ko-fi -->
                             <a href="https://ko-fi.com/TU_USUARIO_AQUI" target="_blank" class="btn-primary-poly pop-anim" style="text-decoration: none; display: flex; align-items: center; background: #FF5E5B;">
                                 ☕ 赞助一杯咖啡 (Ko-fi)
                             </a>
-                            <!-- Reemplaza TU_USUARIO_AQUI con tu nombre de usuario real de PayPal -->
                             <a href="https://paypal.me/TU_USUARIO_AQUI" target="_blank" class="btn-primary-poly pop-anim" style="text-decoration: none; display: flex; align-items: center; background: #009cde;">
                                 💳 PayPal 捐赠
                             </a>
@@ -284,12 +282,17 @@
                     </div>
                 </section>
 
-                <!-- VISTA 2: LISTA DE TAREAS -->
+                <!-- VISTA 2: LISTA DE TAREAS (AHORA CON PRIORIDAD) -->
                 <section id="view-todos" class="view-section">
                     <div class="form-panel poly-card bouncy-hover" style="margin-bottom: 25px;">
                         <h3 class="card-title">📌 新任务 <span class="sub-en">New Task</span></h3>
                         <div class="project-inputs">
                             <input type="text" id="newTodoInput" class="input-cute" placeholder="输入你想做的事情 (What do you need to do?)..." style="flex:1;">
+                            <select id="newTodoPriority" class="select-cute" style="width: auto; flex: 0.4;">
+                                <option value="urgent">🔴 紧急 (Urgent)</option>
+                                <option value="moderate">🟡 中等 (Mod)</option>
+                                <option value="normal" selected>🟢 正常 (Normal)</option>
+                            </select>
                             <button class="btn-primary-poly pop-anim" id="btnAddTodo">添加任务 ✨ <span class="sub-en" style="color:#fff;">Add Task</span></button>
                         </div>
                     </div>
@@ -322,7 +325,7 @@
                         </div>
                         <div class="chart-toggles">
                             <button class="btn-toggle active" data-type="bar" title="Barras Verticales">📊</button>
-                            <button class="btn-toggle" data-type="doughnut" title="Gráfico Radial">🍩</button>
+                            <button class="btn-toggle" data-type="doughnut" title="Gráfico Radial 🔒">🍩</button>
                         </div>
                     </div>
 

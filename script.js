@@ -21,11 +21,11 @@ let currentUser = null;
 let projects = [];
 let logs = [];
 let todos = []; 
-// Añadimos el array 'equipped' para manejar los ítems activos
 let userProfile = { name: '弗雷德', title: 'Fred Jitterbet ✨', picUrl: '', diamonds: 0, inventory: [], equipped: [] };
 let tempProfilePicBase64 = ''; 
 
 let currentKnownLevel = 0; 
+let globalMinuteTicker = 0; // Para el sistema de alarmas de tareas
 
 let activeTimer = JSON.parse(localStorage.getItem('fred_cloud_active')) || null;
 let timerInterval = null;
@@ -39,20 +39,27 @@ let currentTimeFilter = 'weekly';
 // CATALOGO DE LA TIENDA Y EFECTOS
 // =========================================
 const shopItems = [
-    { id: 'effect_dark_fantasy', name: '暗黑幻想光标', desc: 'Dark Fantasy Cursor', price: 15, icon: '⚔️', classStr: 'effect-dark-fantasy', details: '将鼠标指针变为黑暗奇幻风格的十字线。 (Cambia el cursor a una estética oscura).' },
-    { id: 'effect_cyberpunk', name: '赛博朋克边框', desc: 'Cyberpunk Inner Glow', price: 25, icon: '🌃', classStr: 'effect-cyberpunk', details: '为所有卡片添加赛博朋克风格的霓虹内发光。 (Añade un resplandor neón interior a las tarjetas).' },
-    { id: 'cursor_writer', name: '羽毛笔光标', desc: 'Quill Pen Cursor', price: 30, icon: '✒️', classStr: 'cursor-writer', details: '写作时使用的古典羽毛笔光标。 (Un cursor clásico de pluma para tus sesiones de escritura).' },
-    { id: 'cursor_med', name: '手术刀光标', desc: 'Scalpel Cursor', price: 30, icon: '🗡️', classStr: 'cursor-med', details: '高精度手术刀光标，适合医学研究。 (Un cursor en forma de bisturí de alta precisión).' },
-    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Background', price: 50, icon: '🐾', classStr: 'effect-leopard-paws', details: '背景应用复古滤镜。 (Aplica un filtro cálido y huellas al fondo).' },
-    { id: 'effect_med_pulse', name: '医疗心跳脉冲', desc: 'Medical Heartbeat Avatar Pulse', price: 150, icon: '⚕️', classStr: 'effect-med-pulse', details: '你的头像会像心脏一样跳动，发出红色光芒。 (Tu foto de perfil latirá con un aura médica roja).' },
-    { id: 'profile_glitch', name: '故障艺术头像', desc: 'Glitch Profile Pic', price: 200, icon: '📺', classStr: 'profile-glitch', details: '为头像添加赛博故障艺术效果。 (Aplica un efecto de interferencia cibernética a tu foto).' },
-    { id: 'menu_glassmorphism', name: '极致玻璃态', desc: 'Ultra Glassmorphism Menus', price: 300, icon: '🧊', classStr: 'menu-glassmorphism', details: '使侧边栏变得极致透明且模糊。 (Hace que los menús sean extra transparentes y difuminados).' },
-    { id: 'effect_cyber_grid', name: '科幻矩阵全息', desc: 'Sci-Fi Holographic Grid', price: 500, icon: '🛰️', classStr: 'effect-cyber-grid', details: '在背景上投影出全息科幻网格。 (Proyecta una cuadrícula holográfica sobre el fondo).' },
-    { id: 'effect_chongqing_leopard', name: '重庆赛博神', desc: 'Ultimate Chongqing Aura', price: 1000, icon: '🐆', classStr: 'effect-chongqing-leopard', details: '整个界面亮起强烈的赛博霓虹色彩。 (Ilumina toda la interfaz con colores de neón intensos).' },
-    { id: 'effect_thunder_shatter', name: '雷霆碎裂', desc: 'Lightning Shatter', price: 1000, icon: '⚡', classStr: 'effect-thunder-shatter', details: '史诗级效果！卡片被闪电击碎并闪烁。 (¡Efecto épico! Las tarjetas parecen agrietadas por un relámpago inestable).' }
+    { id: 'feature_radial_chart', name: '数据分析：环形图', desc: 'Unlock Radial Chart', price: 50, icon: '🍩', classStr: '', details: '解锁数据分析中的高级环形图表视图。(Desbloquea el gráfico radial en Analytics).' },
+    { id: 'effect_avatar_float', name: '反重力头像', desc: 'Floating Avatar', price: 80, icon: '🎈', classStr: 'effect-avatar-float', details: '使你的自定义头像像失重一样上下浮动。(Haz que tu avatar flote de forma antigravedad).' },
+    { id: 'feature_analytics', name: '高级数据分析模块', desc: 'Unlock Analytics Tab', price: 100, icon: '📊', classStr: '', details: '解锁完整的数据分析页面。(Desbloquea la página completa de Analytics).' },
+    { id: 'feature_task_alarms', name: '智能任务警报系统', desc: 'Task Alarms System', price: 100, icon: '🔔', classStr: '', details: '解锁任务优先级提醒，紧急任务每10分钟报警！(Desbloquea alarmas para tareas urgentes cada 10 min).' },
+    
+    // COSMÉTICOS
+    { id: 'effect_dark_fantasy', name: '暗黑幻想光标', desc: 'Dark Fantasy Cursor', price: 15, icon: '⚔️', classStr: 'effect-dark-fantasy', details: '将鼠标指针变为黑暗奇幻风格的十字线。 (Cambia el cursor a cruz oscura).' },
+    { id: 'effect_cyberpunk', name: '赛博朋克边框', desc: 'Cyberpunk Inner Glow', price: 25, icon: '🌃', classStr: 'effect-cyberpunk', details: '为所有卡片添加赛博朋克风格的霓虹内发光。 (Añade resplandor neón interior).' },
+    { id: 'cursor_writer', name: '羽毛笔光标', desc: 'Quill Pen Cursor', price: 30, icon: '✒️', classStr: 'cursor-writer', details: '写作时使用的古典羽毛笔光标。 (Cursor clásico de pluma).' },
+    { id: 'cursor_med', name: '手术刀光标', desc: 'Scalpel Cursor', price: 30, icon: '🗡️', classStr: 'cursor-med', details: '高精度手术刀光标。 (Cursor en forma de bisturí).' },
+    { id: 'effect_leopard', name: '雪豹之影', desc: 'Leopard Paws Background', price: 50, icon: '🐾', classStr: 'effect-leopard-paws', details: '背景应用复古滤镜。 (Filtro retro de leopardo).' },
+    { id: 'effect_med_pulse', name: '医疗心跳脉冲', desc: 'Medical Heartbeat Avatar', price: 150, icon: '⚕️', classStr: 'effect-med-pulse', details: '你的头像会像心脏一样跳动。 (Tu avatar latirá con un aura roja).' },
+    { id: 'profile_glitch', name: '故障艺术头像', desc: 'Glitch Profile Pic', price: 200, icon: '📺', classStr: 'profile-glitch', details: '为头像添加真正的色彩分离故障效果。 (Efecto de separación RGB en la foto de perfil).' },
+    { id: 'menu_glassmorphism', name: '极致玻璃态', desc: 'Ultra Glassmorphism Menus', price: 300, icon: '🧊', classStr: 'menu-glassmorphism', details: '使侧边栏变得极致透明且模糊。 (Menús de cristal extra difuminados).' },
+    { id: 'effect_cyber_grid', name: '科幻矩阵全息', desc: 'Sci-Fi Holographic Grid', price: 500, icon: '🛰️', classStr: 'effect-cyber-grid', details: '投影出全息科幻网格。 (Cuadrícula holográfica en el fondo).' },
+    { id: 'effect_chongqing_leopard', name: '重庆赛博神', desc: 'Ultimate Chongqing Aura', price: 1000, icon: '🐆', classStr: 'effect-chongqing-leopard', details: '界面亮起强烈的赛博霓虹色彩。 (Colores de neón ciberpunk extremos).' },
+    { id: 'effect_thunder_shatter', name: '雷霆碎裂', desc: 'Lightning Shatter', price: 1000, icon: '⚡', classStr: 'effect-thunder-shatter', details: '卡片产生真实的雷击碎裂闪光震撼效果。 (¡Efecto épico! Las tarjetas se agrietan con luz de relámpago).' }
 ];
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
 function playCutePop() {
     if(audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
@@ -71,17 +78,27 @@ function playCelebrationSound() {
     notes.forEach((freq, i) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.type = 'sine';
-        osc.frequency.value = freq;
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
         const startTime = audioCtx.currentTime + (i * 0.08);
         gain.gain.setValueAtTime(0, startTime);
         gain.gain.linearRampToValueAtTime(0.1, startTime + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
-        osc.start(startTime);
-        osc.stop(startTime + 0.4);
+        osc.start(startTime); osc.stop(startTime + 0.4);
     });
+}
+
+function playAlarmSound() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(1108, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
 }
 
 function applyTheme(themeName) {
@@ -132,7 +149,7 @@ async function loadCloudData() {
             userProfile = { ...userProfile, ...userDoc.data().profile };
         }
         if(!userProfile.inventory) userProfile.inventory = [];
-        if(!userProfile.equipped) userProfile.equipped = []; // Nuevo array para items equipados
+        if(!userProfile.equipped) userProfile.equipped = []; 
         if(!userProfile.diamonds) userProfile.diamonds = 0;
 
         const pSnap = await db.collection('users').doc(currentUser.uid).collection('projects').get();
@@ -173,8 +190,8 @@ async function deleteProjectFromCloud(projId) {
     if(document.getElementById('view-reports').classList.contains('active')) renderAnalytics();
 }
 
-async function saveTodoToCloud(text) {
-    const newTodo = { text: text, done: false, createdAt: Date.now() };
+async function saveTodoToCloud(text, priority) {
+    const newTodo = { text: text, priority: priority, done: false, createdAt: Date.now() };
     const docRef = await db.collection('users').doc(currentUser.uid).collection('todos').add(newTodo);
     todos.unshift({ id: docRef.id, ...newTodo });
     renderTodos();
@@ -205,7 +222,7 @@ async function syncProfile() {
 function initApp() {
     setupNavigation();
     
-    // 🔥 CÓDIGO DE TRAMPA VIP: 100,000 diamantes exclusivos 🔥
+    // 🔥 CÓDIGO DE TRAMPA VIP 🔥
     if (!userProfile.vipBonusClaimed) {
         userProfile.diamonds = (userProfile.diamonds || 0) + 100000;
         userProfile.vipBonusClaimed = true;
@@ -227,7 +244,7 @@ function initApp() {
     
     updateDashboardStats();
     renderShop();
-    applyPurchasedEffects(); // Ahora solo aplica los "equipados"
+    applyPurchasedEffects();
 
     const savedTheme = localStorage.getItem('fred_theme') || 'pastel';
     applyTheme(savedTheme);
@@ -259,7 +276,8 @@ function initApp() {
     document.getElementById('btnAddTodo').onclick = () => {
         playCutePop();
         const text = document.getElementById('newTodoInput').value.trim();
-        if(text) { saveTodoToCloud(text); document.getElementById('newTodoInput').value = ''; }
+        const priority = document.getElementById('newTodoPriority').value;
+        if(text) { saveTodoToCloud(text, priority); document.getElementById('newTodoInput').value = ''; }
     };
 
     document.getElementById('btnExportCSV').onclick = exportToCSV;
@@ -291,6 +309,7 @@ function initApp() {
         playCutePop();
     };
 
+    // LÓGICA DEL EDITOR DE PERFIL
     document.getElementById('btnEditProfile').onclick = () => {
         playCutePop();
         document.getElementById('editProfileName').value = userProfile.name || '';
@@ -356,6 +375,23 @@ function initApp() {
         document.getElementById('liveClock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     }, 1000);
 
+    // BACKGROUND TICKER (ALARMAS CADA MINUTO)
+    setInterval(() => {
+        globalMinuteTicker++;
+        if (!userProfile.inventory || !userProfile.inventory.includes('feature_task_alarms')) return; // No tiene la mejora comprada
+
+        const hasUrgent = todos.some(t => !t.done && t.priority === 'urgent');
+        const hasMod = todos.some(t => !t.done && t.priority === 'moderate');
+
+        if (hasUrgent && globalMinuteTicker % 10 === 0) { // Cada 10 minutos
+            playAlarmSound();
+            showMilestonePopup("🚨 紧急任务提醒！", "你有未完成的紧急任务！(¡Tienes tareas URGENTES pendientes!)");
+        } else if (hasMod && globalMinuteTicker % 60 === 0) { // Cada 60 minutos
+            playAlarmSound();
+            showMilestonePopup("⚠️ 中等任务提醒", "别忘了你的中等优先级任务。(No olvides tus tareas moderadas).");
+        }
+    }, 60000);
+
     const hour = new Date().getHours();
     const greetings = [
         {cn: "早上好，弗雷德！☀️", en: "Good Morning, Fred!"},
@@ -377,12 +413,21 @@ function setupNavigation() {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.onclick = (e) => {
             playCutePop();
+            const targetId = e.currentTarget.getAttribute('data-target');
+            
+            // LOCKS DE SEGURIDAD PARA FUNCIONES DE PAGA
+            if(targetId === 'view-reports') {
+                if(!userProfile.inventory || !userProfile.inventory.includes('feature_analytics')) {
+                    alert('🔒 此功能已锁定！请在商店中购买"高级数据分析模块"。\n(¡Función bloqueada! Compra "Analytics" en la tienda por 100 💎).');
+                    return;
+                }
+                renderAnalytics();
+            }
+
             document.querySelectorAll('.nav-item, .view-section').forEach(el => el.classList.remove('active'));
             e.currentTarget.classList.add('active');
-            const targetId = e.currentTarget.getAttribute('data-target');
             document.getElementById(targetId).classList.add('active');
             
-            if(targetId === 'view-reports') renderAnalytics();
             if(targetId === 'view-shop') renderShop();
         };
     });
@@ -511,10 +556,16 @@ function renderTodos() {
     const list = document.getElementById('todoList');
     list.innerHTML = '';
     todos.forEach(t => {
+        // Badges de prioridad
+        let pBadge = '';
+        if(t.priority === 'urgent') pBadge = '<span class="badge-priority" style="background:#ff6b6b; color:#fff;">🔴 Urgente</span>';
+        else if(t.priority === 'moderate') pBadge = '<span class="badge-priority" style="background:#feca57; color:#000;">🟡 Mod</span>';
+        else pBadge = '<span class="badge-priority" style="background:var(--input-bg); color:var(--text-muted);">🟢 Normal</span>';
+
         list.innerHTML += `
             <div class="todo-item ${t.done ? 'done' : ''}">
                 <input type="checkbox" class="todo-checkbox" ${t.done ? 'checked' : ''} onclick="toggleTodoCloud('${t.id}', ${t.done})">
-                <span class="todo-text">${t.text}</span>
+                <span class="todo-text">${t.text} ${pBadge}</span>
                 <button class="btn-delete" style="opacity:1;" onclick="deleteTodoCloud('${t.id}')">✖</button>
             </div>
         `;
@@ -613,7 +664,10 @@ function renderShop() {
         
         let btnHTML = '';
         if (isOwned) {
-            if (isEquipped) {
+            // Si es un feature (funcionalidad), no necesita equiparse, solo se posee
+            if (item.classStr === '') {
+                btnHTML = `<button class="btn-buy disabled" style="background:var(--input-bg); color:var(--text-muted);">已拥有 Owned</button>`;
+            } else if (isEquipped) {
                 btnHTML = `<button class="btn-buy" style="background: #ff6b6b; color: #fff;" onclick="toggleEquipItem('${item.id}')">卸下 Unequip</button>`;
             } else {
                 btnHTML = `<button class="btn-buy" style="background: #1dd1a1; color: #fff;" onclick="toggleEquipItem('${item.id}')">装备 Equip</button>`;
@@ -647,14 +701,13 @@ async function buyItem(itemId, price) {
     if(!userProfile.equipped) userProfile.equipped = [];
     
     userProfile.inventory.push(itemId);
-    userProfile.equipped.push(itemId); // Se equipa automáticamente al comprar
+    if(item.classStr !== '') userProfile.equipped.push(itemId); // Solo los cosméticos se equipan
     
     updateProfileUI();
     renderShop();
     applyPurchasedEffects();
     await syncProfile();
     
-    // Alerta que explica lo que hace el objeto
     showMilestonePopup("购买成功！(Purchased!)", `✨ ${item.details}`);
 }
 
@@ -664,9 +717,9 @@ async function toggleEquipItem(itemId) {
     
     const index = userProfile.equipped.indexOf(itemId);
     if (index > -1) {
-        userProfile.equipped.splice(index, 1); // Desequipar
+        userProfile.equipped.splice(index, 1); 
     } else {
-        userProfile.equipped.push(itemId); // Equipar
+        userProfile.equipped.push(itemId); 
     }
     
     renderShop();
@@ -675,14 +728,14 @@ async function toggleEquipItem(itemId) {
 }
 
 function applyPurchasedEffects() {
-    // Primero, quitamos TODAS las clases de la tienda para evitar conflictos
-    shopItems.forEach(item => document.body.classList.remove(item.classStr));
+    shopItems.forEach(item => {
+        if(item.classStr !== '') document.body.classList.remove(item.classStr);
+    });
     
     if(!userProfile.equipped) return;
     
-    // Luego, aplicamos SOLAMENTE las clases equipadas
     shopItems.forEach(item => {
-        if (userProfile.equipped.includes(item.id)) {
+        if (item.classStr !== '' && userProfile.equipped.includes(item.id)) {
             document.body.classList.add(item.classStr);
         }
     });
@@ -706,6 +759,14 @@ function initAnalytics() {
     document.querySelectorAll('.btn-toggle').forEach(btn => {
         btn.onclick = (e) => {
             playCutePop();
+            // BLOQUEO DE GRÁFICO RADIAL
+            if(e.currentTarget.dataset.type === 'doughnut') {
+                if(!userProfile.inventory || !userProfile.inventory.includes('feature_radial_chart')) {
+                    alert('🔒 环形图表已锁定！请在商店购买。\n(¡Gráfico Radial bloqueado! Cómpralo en la tienda por 50 💎).');
+                    return;
+                }
+            }
+
             document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
             currentChartType = e.currentTarget.dataset.type;
